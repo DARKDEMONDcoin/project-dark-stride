@@ -29,18 +29,21 @@ export type SearchIntent = {
 const R: Record<Exclude<SearchKind, "general">, RegExp> = {
   // «حدث» بلا «أ/ا» قبلها: وإلا صُنّفت «أحدث اتجاهات التصميم» خبراً وجاءت نتائج إخبارية عشوائية.
   news: /(خبر|أخبار|اخبار|عاجل|(?<![أاإآ])حدث|أحداث|تصريح|انتخابات|حرب|news|breaking|announce)/i,
-  finance: /(سهم|أسهم|اسهم|بورصة|البورصة|دولار|يورو|سعر الصرف|ذهب|بيتكوين|عملة|تضخم|فائدة|stock|shares|crypto|bitcoin|exchange rate|inflation|nasdaq)/i,
-  prices: /(سعر|أسعار|اسعار|تكلفة|بكام|كام سعر|باقة|باقات|اشتراك|price|pricing|cost|plan)/i,
-  sports: /(مباراة|ماتش|دوري|كأس|نتيجة|الأهلي|الزمالك|منتخب|لاعب|هدف|match|league|score|fifa)/i,
-  local: /(قريب|بالقرب|في القاهرة|في الرياض|في دبي|في جدة|فرع|عنوان|مطعم|محل|near me|nearby|address)/i,
-  tech: /(ذكاء اصطناعي|تطبيق|برنامج|آيفون|ايفون|أندرويد|اندرويد|إصدار|تحديث|api|ai|gpt|iphone|android|release|update|software)/i,
-  health: /(صحة|مرض|علاج|دواء|أعراض|سعرات|رجيم|health|disease|symptom|treatment|diet)/i,
-  science: /(دراسة|بحث علمي|أبحاث|إحصائية|احصائية|نسبة|تقرير|study|research|statistics|report|survey)/i,
-  howto: /(ازاي|إزاي|كيف|طريقة|خطوات|how to|tutorial|guide|steps)/i,
-  entity: /(مين|من هو|من هي|ما هو|ما هي|إيه هو|ايه هي|who is|what is|biography)/i,
+  finance: /(سهم|أسهم|اسهم|بورصة|البورصة|سعر الدولار|سعر اليورو|سعر الصرف|سعر الذهب|بيتكوين|تضخم|سعر الفائدة|\bstocks?\b|\bshares\b|crypto|bitcoin|exchange rate|inflation|nasdaq)/i,
+  prices: /(سعر|أسعار|اسعار|تكلفة|بكام|كام سعر|باقة|باقات|اشتراك|\bprices?\b|pricing|\bcosts?\b|\bplans?\b)/i,
+  // لا «هدف» ولا «نتيجة»: تردان في أسئلة التسويق («هدف الحملة»، «نتيجة الإعلان») فتنحرف إلى أخبار الرياضة.
+  sports: /(مباراة|ماتش|الدوري|كأس العالم|كأس|الأهلي|الزمالك|منتخب|لاعب كرة|\bmatch\b|premier league|\bfifa\b)/i,
+  local: /(قريب مني|بالقرب|في القاهرة|في الرياض|في دبي|في جدة|فرع|عنوان|مطعم|near me|nearby|\baddress\b)/i,
+  tech: /(ذكاء اصطناعي|تطبيق|برنامج|آيفون|ايفون|أندرويد|اندرويد|إصدار|تحديث|\bapi\b|\bai\b|\bgpt|iphone|android|\brelease\b|\bupdate\b|software)/i,
+  health: /(صحة|مرض|علاج|دواء|أعراض|سعرات|رجيم|\bhealth\b|disease|symptom|treatment|\bdiet\b)/i,
+  science: /(دراسة|بحث علمي|أبحاث|إحصائية|احصائية|تقرير|\bstudy\b|research|statistics|\breport\b|survey)/i,
+  howto: /(ازاي|إزاي|كيف|طريقة|خطوات|how to|tutorial|\bguide\b|\bsteps\b)/i,
+  entity: /(مين|من هو|من هي|إيه هو|ايه هي|who is|biography)/i,
 };
 
-const FRESH = /(اليوم|النهارده|الآن|دلوقتي|حالياً|حاليا|هذا الأسبوع|الاسبوع ده|أحدث|آخر|جديد|latest|today|now|this week|current|recent|2026)/i;
+/** كلمات لحظية فعلاً — «أحدث/2026» وحدها تعني «حديث» لا «هذا الأسبوع». */
+const FRESH = /(اليوم|النهارده|الآن|دلوقتي|حالياً|حاليا|هذا الأسبوع|الاسبوع ده|\blatest\b|\btoday\b|\bnow\b|this week|\bcurrent\b)/i;
+const RECENT = /(أحدث|احدث|آخر|جديد|\brecent\b|\b20\d{2}\b)/i;
 
 export function classifySearch(text: string): SearchIntent {
   const t = (text ?? "").slice(0, 400);
