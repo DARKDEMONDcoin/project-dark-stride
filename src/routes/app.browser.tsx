@@ -218,14 +218,14 @@ function BrowserPage() {
               </div>
               {PURCHASE_INTENT.test(goal) && task.data.status !== "handoff" && task.data.steps.at(-1)?.url ? (
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-amber/30 bg-amber/10 p-4 text-sm">
-                  <p className="font-bold">جهّزنا لك الصفحة — الدفع والتأكيد النهائي بيدك وحدك.</p>
+                  <p className="font-bold">وجدنا الصفحة والعروض؛ راجع التفاصيل قبل أي خطوة نهائية.</p>
                   <a
                     href={task.data.steps.at(-1)!.url}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background"
                   >
-                    <ExternalLink className="size-3.5" /> افتح الصفحة وأكمل بنفسك
+                    <ExternalLink className="size-3.5" /> افتح العرض الأصلي
                   </a>
                 </div>
               ) : null}
