@@ -2,7 +2,7 @@ import { LogoMark } from "@/components/site/LogoMark";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Portrait } from "@/components/site/Portrait";
-import { Bell, Menu, X, User, LogOut } from "lucide-react";
+import { Bell, Globe, Menu, X, User, LogOut } from "lucide-react";
 
 import { team } from "@/data/team";
 import { COUNTRIES } from "@/data/team-portraits";
