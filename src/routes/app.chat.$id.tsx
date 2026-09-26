@@ -36,6 +36,9 @@ import {
   ScrollText,
   LayoutDashboard,
   ChevronDown,
+  Globe,
+  Palette,
+  MailWarning,
 } from "lucide-react";
 
 import { AppShell } from "@/components/app/AppShell";
@@ -420,6 +423,7 @@ type WorkTool = {
   to: string;
   icon: typeof ListChecks;
   sonnyOnly?: boolean;
+  employeeOnly?: string;
 };
 
 const WORK_TOOLS: WorkTool[] = [
@@ -436,6 +440,29 @@ const WORK_TOOLS: WorkTool[] = [
     description: "تابع التنفيذ خطوة بخطوة",
     to: "/app/tasks",
     icon: ListChecks,
+  },
+  {
+    id: "browser",
+    title: "المتصفح المنفّذ",
+    description: "ابحث عن أفضل سيارة أو رحلة وقارن الخيارات بروابطها؛ قرار الشراء والحجز لك.",
+    to: "/app/browser",
+    icon: Globe,
+  },
+  {
+    id: "inbox-watch",
+    title: "بريد أمَل",
+    description: "اعثر على الرسائل المهمة وجهّز رداً تراجعه قبل الإرسال.",
+    to: "/app/inbox-watch",
+    icon: MailWarning,
+    employeeOnly: "eva",
+  },
+  {
+    id: "design-editor",
+    title: "محرر دانة",
+    description: "حوّل صورتك إلى إعلان عربي جاهز للمنشور أو الستوري.",
+    to: "/app/design-editor",
+    icon: Palette,
+    employeeOnly: "dana",
   },
   {
     id: "autopilot",
@@ -1929,7 +1956,7 @@ function ChatView({
               ) : (
                 <div className="chat-work-sheet">
                   <div className="chat-work-links" aria-label="أدوات التشغيل الأساسية">
-                    {WORK_TOOLS.filter((tool) => !tool.sonnyOnly || id === "sonny").map((tool) => {
+                    {WORK_TOOLS.filter((tool) => (!tool.sonnyOnly || id === "sonny") && (!tool.employeeOnly || tool.employeeOnly === id)).map((tool) => {
                       const Icon = tool.icon;
                       return (
                         <article key={tool.id} className="chat-work-card">
