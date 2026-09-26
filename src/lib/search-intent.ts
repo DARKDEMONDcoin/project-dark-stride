@@ -61,13 +61,13 @@ export function classifySearch(text: string): SearchIntent {
     ? "day"
     : fresh
       ? "week"
-      : kinds.includes("prices") || kinds.includes("tech")
+      : RECENT.test(t) || kinds.includes("prices") || kinds.includes("tech")
         ? "year"
         : undefined;
 
   // المجاني قوي في: الموسوعي، الأكاديمي، الشرح. ضعيف في: اللحظي، الأسعار، الرياضة، المحلي.
   const tavilyFirst =
-    fresh || kinds.some((k) => k === "prices" || k === "finance" || k === "local" || k === "sports");
+    fresh || RECENT.test(t) || kinds.some((k) => k === "prices" || k === "finance" || k === "local" || k === "sports");
 
   return { kinds, fresh, timeRange, tavilyTopic, tavilyFirst };
 }
