@@ -6,6 +6,7 @@ import { Check, Loader2, Users, X } from "lucide-react";
 
 import { AppShell } from "@/components/app/AppShell";
 import { Markdown } from "@/components/app/Markdown";
+import { ShareButton } from "@/components/app/ShareButton";
 import { useWorkspace } from "@/lib/data";
 import { employeeDirectory, type EmployeeId } from "@/lib/team-knowledge";
 import { decideTeamTask, listTeamTasks, runTeamTask } from "@/lib/team-tasks.functions";
@@ -121,6 +122,11 @@ function TeamTasksPage() {
                 <div className="rounded-xl border border-border p-4">
                   <div className="mb-2 text-sm font-semibold">التسليم النهائي</div>
                   <Markdown body={t.final_output} />
+                  {workspace?.id ? (
+                    <div className="mt-3">
+                      <ShareButton workspaceId={workspace.id} title={t.goal} body={t.final_output} />
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {t.status === "awaiting_approval" ? (

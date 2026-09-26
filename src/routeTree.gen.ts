@@ -55,6 +55,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as EmployeesIndexRouteImport } from './routes/employees.index'
 import { Route as EmployeesIdRouteImport } from './routes/employees.$id'
+import { Route as STokenRouteImport } from './routes/s.$token'
 import { Route as UseCasesIndexRouteImport } from './routes/use-cases.index'
 import { Route as UseCasesIdRouteImport } from './routes/use-cases.$id'
 import { Route as ApiPublicInboxWatchRouteImport } from './routes/api/public/inbox-watch'
@@ -305,6 +306,11 @@ const EmployeesIdRoute = EmployeesIdRouteImport.update({
   path: '/employees/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const STokenRoute = STokenRouteImport.update({
+  id: '/s/$token',
+  path: '/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UseCasesIndexRoute = UseCasesIndexRouteImport.update({
   id: '/use-cases/',
   path: '/use-cases/',
@@ -451,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
+  '/s/$token': typeof STokenRoute
   '/use-cases/$id': typeof UseCasesIdRoute
   '/app/': typeof AppIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -517,6 +524,7 @@ export interface FileRoutesByTo {
   '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
+  '/s/$token': typeof STokenRoute
   '/use-cases/$id': typeof UseCasesIdRoute
   '/app': typeof AppIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -585,6 +593,7 @@ export interface FileRoutesById {
   '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
+  '/s/$token': typeof STokenRoute
   '/use-cases/$id': typeof UseCasesIdRoute
   '/app/': typeof AppIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -654,6 +663,7 @@ export interface FileRouteTypes {
     | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
+    | '/s/$token'
     | '/use-cases/$id'
     | '/app/'
     | '/blog/'
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
+    | '/s/$token'
     | '/use-cases/$id'
     | '/app'
     | '/blog'
@@ -787,6 +798,7 @@ export interface FileRouteTypes {
     | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
+    | '/s/$token'
     | '/use-cases/$id'
     | '/app/'
     | '/blog/'
@@ -837,6 +849,7 @@ export interface RootRouteChildren {
   ApiEmployeeStreamRoute: typeof ApiEmployeeStreamRoute
   BlogSlugRoute: typeof BlogSlugRoute
   EmployeesIdRoute: typeof EmployeesIdRoute
+  STokenRoute: typeof STokenRoute
   UseCasesIdRoute: typeof UseCasesIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
   EmployeesIndexRoute: typeof EmployeesIndexRoute
@@ -1182,6 +1195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/s/$token': {
+      id: '/s/$token'
+      path: '/s/$token'
+      fullPath: '/s/$token'
+      preLoaderRoute: typeof STokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/use-cases/': {
       id: '/use-cases/'
       path: '/use-cases'
@@ -1394,6 +1414,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEmployeeStreamRoute: ApiEmployeeStreamRoute,
   BlogSlugRoute: BlogSlugRoute,
   EmployeesIdRoute: EmployeesIdRoute,
+  STokenRoute: STokenRoute,
   UseCasesIdRoute: UseCasesIdRoute,
   BlogIndexRoute: BlogIndexRoute,
   EmployeesIndexRoute: EmployeesIndexRoute,
