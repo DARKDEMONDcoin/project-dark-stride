@@ -2,7 +2,7 @@ import { LogoMark } from "@/components/site/LogoMark";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Portrait } from "@/components/site/Portrait";
-import { Bell, Globe, MailWarning, Menu, Palette, X, User, LogOut, ShieldCheck, Users } from "lucide-react";
+import { Bell, Globe, MailWarning, Menu, Palette, X, User, LogOut, ShieldCheck, Users, Ellipsis, CheckCircle2 } from "lucide-react";
 
 import { team } from "@/data/team";
 import { COUNTRIES } from "@/data/team-portraits";
@@ -14,6 +14,7 @@ import { useProfile, useWorkspace } from "@/lib/data";
 import { UserAvatar } from "@/components/app/UserAvatar";
 import { SiteFavicon } from "@/components/app/SiteBadge";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import defaultWorkspace from "@/assets/default-workspace.jpg";
 
 function WorkspaceCard() {
@@ -218,6 +219,73 @@ function UserMenu({ name }: { name: string | null }) {
   );
 }
 
+const openingLinks = [
+  { to: "/app/team-tasks", label: "مهام الفريق", detail: "كلّف الفريق بإطلاق مشروعك، واستلم خطة تجمع البحث والمحتوى والتصميم.", icon: Users },
+  { to: "/app/approvals", label: "الموافقات", detail: "راجع ما أعدّه الفريق قبل إرساله أو نشره.", icon: CheckCircle2 },
+  { to: "/app/browser", label: "المتصفح", detail: "قارن سيارة وفندقاً ورحلة، واحصل على الخيارات وروابطها قبل أن تحجز بنفسك.", icon: Globe },
+  { to: "/app/inbox-watch", label: "بريد أمَل", detail: "اعثر على رسالة عميل مهمة، وجهّز رداً لا يُرسل دونك.", icon: MailWarning },
+  { to: "/app/design-editor", label: "محرر دانة", detail: "حوّل صورتك إلى إعلان عربي بمقاس المنشور أو الستوري، ثم حمّله.", icon: Palette },
+  { to: "/app/trust", label: "الصلاحيات", detail: "حدد ما يستطيع كل موظف فعله وراجع سجل إجراءاته.", icon: ShieldCheck },
+] as const;
+
+function OpeningMenu({ compactTitle }: { compactTitle: boolean }) {
+  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => setOpen(false), [pathname]);
+
+  return (
+    <div className="relative shrink-0">
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        onClick={() => setOpen((value) => !value)}
+        aria-label="كل أدوات الفريق"
+        title="كل أدوات الفريق"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="size-10 rounded-lg border-border bg-background"
+      >
+        <Ellipsis className="size-5" />
+      </Button>
+      {open ? (
+        <>
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label="إغلاق أدوات الفريق"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 h-auto w-auto rounded-none bg-transparent hover:bg-transparent"
+          />
+          <nav
+            aria-label="أدوات الفريق"
+            className="absolute end-0 z-50 mt-2 max-h-[min(72dvh,38rem)] w-[min(21rem,calc(100vw-1rem))] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lift"
+          >
+            <p className="px-3 pb-2 pt-1 text-xs font-bold text-muted-foreground">العمل والمراجعة</p>
+            {openingLinks.map((item, index) => (
+              <div key={item.to}>
+                {index === 2 ? <p className="mt-2 border-t border-border px-3 pb-2 pt-3 text-xs font-bold text-muted-foreground">أدوات الموظفين</p> : null}
+                <Link
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  aria-current={pathname === item.to ? "page" : undefined}
+                  className="flex min-w-0 items-start gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:bg-secondary"
+                >
+                  <item.icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <span className="min-w-0">
+                    <strong className="block text-sm">{item.label}</strong>
+                    <small className="block text-xs leading-5 text-muted-foreground">{item.detail}</small>
+                  </span>
+                </Link>
+              </div>
+            ))}
+          </nav>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function AppShell({
   title,
   lead,
@@ -300,58 +368,28 @@ export function AppShell({
             </div>
             <div
               className={cn(
-                "app-topbar-controls flex min-w-0 shrink items-center gap-1 sm:gap-2",
-                compactTitle && "flex-1 overflow-hidden sm:flex-initial sm:overflow-visible",
+                "app-topbar-controls flex min-w-0 shrink-0 items-center gap-1 sm:gap-2",
+                compactTitle && "min-w-0 flex-1 sm:flex-initial",
               )}
             >
               {actions}
               <Link
-                to="/app/browser"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="المتصفح المنفّذ"
-                title="المتصفح المنفّذ"
-              >
-                <Globe className="size-4.5" />
-              </Link>
-              <Link
                 to="/app/team-tasks"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="مهام الفريق المشتركة"
-                title="مهام الفريق المشتركة"
+                className="hidden size-10 shrink-0 place-items-center rounded-lg border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:grid"
+                aria-label="مهام الفريق"
+                title="مهام الفريق"
               >
                 <Users className="size-4.5" />
               </Link>
               <Link
-                to="/app/inbox-watch"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="رسائل بانتظار ردك"
-                title="رسائل بانتظار ردك"
-              >
-                <MailWarning className="size-4.5" />
-              </Link>
-              <Link
-                to="/app/trust"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="الثقة والصلاحيات"
-                title="الثقة والصلاحيات"
-              >
-                <ShieldCheck className="size-4.5" />
-              </Link>
-              <Link
-                to="/app/design-editor"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="محرر تصميم دانة"
-                title="محرر تصميم دانة"
-              >
-                <Palette className="size-4.5" />
-              </Link>
-              <Link
                 to="/app/approvals"
-                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
-                aria-label="التنبيهات"
+                className="hidden size-10 shrink-0 place-items-center rounded-lg border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
+                aria-label="الموافقات"
+                title="الموافقات"
               >
                 <Bell className="size-4.5" />
               </Link>
+              <OpeningMenu compactTitle={compactTitle} />
               <UserMenu name={profile?.full_name ?? null} />
             </div>
           </div>
