@@ -1282,7 +1282,12 @@ function ChatView({
                           </>
 
                         ) : (
-                          <Markdown body={body} onOpenApp={openAppInChat} />
+                          <>
+                            <Markdown body={body} onOpenApp={openAppInChat} />
+                            {workspace && body.trim().length > 2 ? (
+                              <ListenButton workspaceId={workspace.id} text={body} />
+                            ) : null}
+                          </>
                         )}
                         {!isUser &&
                         id === "nour" &&
