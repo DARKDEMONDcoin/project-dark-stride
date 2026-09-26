@@ -17,7 +17,12 @@ const OWNERSHIP: Record<string, string> = {
 };
 
 /** كتلة تعليمات تمنع الموظف من أداء عمل زميله وتجعله يحوّل الطلب فوراً. */
-export function scopeBoundaryBlock(employeeId: string, message?: string): string {
+export function scopeBoundaryBlock(
+  employeeId: string,
+  message?: string,
+  /** إحالة محسوبة مسبقاً (مثلاً من المصنّف الذكي)؛ null = لا إحالة. */
+  precomputed?: ReturnType<typeof detectHandoff>,
+): string {
   const me = employeeDirectory[employeeId as EmployeeId];
   if (!me) return "";
 
@@ -47,7 +52,8 @@ export function scopeBoundaryBlock(employeeId: string, message?: string): string
     );
   }
 
-  const handoff = message ? detectHandoff(message, employeeId) : null;
+  const handoff =
+    precomputed !== undefined ? precomputed : message ? detectHandoff(message, employeeId) : null;
   if (handoff) {
     lines.push(
       `تنبيه لهذه الرسالة تحديداً: طلب المستخدم (${handoff.topic}) من اختصاص ${handoff.name} — ${handoff.role}. وجّهه إليه الآن ولا تنفّذ الطلب.`,

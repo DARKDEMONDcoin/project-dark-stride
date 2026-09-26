@@ -2,7 +2,7 @@ import { LogoMark } from "@/components/site/LogoMark";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Portrait } from "@/components/site/Portrait";
-import { Bell, Globe, Menu, X, User, LogOut } from "lucide-react";
+import { Bell, Globe, Menu, X, User, LogOut, Users } from "lucide-react";
 
 import { team } from "@/data/team";
 import { COUNTRIES } from "@/data/team-portraits";
@@ -312,6 +312,14 @@ export function AppShell({
                 title="المتصفح المنفّذ"
               >
                 <Globe className="size-4.5" />
+              </Link>
+              <Link
+                to="/app/team-tasks"
+                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
+                aria-label="مهام الفريق المشتركة"
+                title="مهام الفريق المشتركة"
+              >
+                <Users className="size-4.5" />
               </Link>
               <Link
                 to="/app/approvals"

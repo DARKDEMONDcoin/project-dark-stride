@@ -1703,6 +1703,95 @@ export type Database = {
           },
         ]
       }
+      team_task_steps: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          instruction: string
+          output: string | null
+          position: number
+          status: string
+          team_task_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          instruction: string
+          output?: string | null
+          position: number
+          status?: string
+          team_task_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          instruction?: string
+          output?: string | null
+          position?: number
+          status?: string
+          team_task_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_task_steps_team_task_id_fkey"
+            columns: ["team_task_id"]
+            isOneToOne: false
+            referencedRelation: "team_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_task_steps_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_tasks: {
+        Row: {
+          created_at: string
+          final_output: string | null
+          goal: string
+          id: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          final_output?: string | null
+          goal: string
+          id?: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          final_output?: string | null
+          goal?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       telegram_onboarding: {
         Row: {
           chat_id: string
