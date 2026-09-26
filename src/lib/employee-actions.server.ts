@@ -940,11 +940,23 @@ export async function runEmployeeActionServer(
     throw new Error("نفّذنا هذا الإجراء نفسه قبل لحظات — منعنا تكراره. غيّر البيانات أو انتظر دقيقة.");
   }
   recentActions.set(dedupeKey, now);
+  const { enforceEmployeePolicy, recordAudit } = await import("./employee-policy.server");
+  const employeeId = params.actionId.split("-")[0] ?? "unknown";
   try {
-    return await runEmployeeActionInner(admin, params);
+    await enforceEmployeePolicy(admin, params.workspaceId, employeeId, params.actionId);
+    const out = await runEmployeeActionInner(admin, params);
+    await recordAudit(admin, { ...params, employeeId, provider: out.provider, status: "done" });
+    return out;
   } catch (error) {
     // فشل = لم يُنفَّذ شيء، فنحرّر المفتاح ليعيد المالك المحاولة فوراً.
     recentActions.delete(dedupeKey);
+    await recordAudit(admin, {
+      ...params,
+      employeeId,
+      provider: null,
+      status: "failed",
+      detail: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 }
