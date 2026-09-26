@@ -166,9 +166,9 @@ async function release(apiKey: string, projectId: string, sessionId: string) {
  */
 export async function runBrowserAgent(input: {
   goal: string;
-  startUrl?: string;
-  maxSteps?: number;
-  resumeSessionId?: string;
+  startUrl?: string | undefined;
+  maxSteps?: number | undefined;
+  resumeSessionId?: string | undefined;
 }): Promise<AgentResult> {
   const { apiKey, projectId } = await bbKeys();
   const maxSteps = Math.min(Math.max(input.maxSteps ?? 10, 1), 15);
