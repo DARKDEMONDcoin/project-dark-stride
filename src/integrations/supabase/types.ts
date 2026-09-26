@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_audit: {
+        Row: {
+          action_id: string
+          created_at: string
+          detail: string | null
+          employee_id: string
+          id: string
+          provider: string | null
+          status: string
+          summary: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          detail?: string | null
+          employee_id: string
+          id?: string
+          provider?: string | null
+          status: string
+          summary?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          detail?: string | null
+          employee_id?: string
+          id?: string
+          provider?: string | null
+          status?: string
+          summary?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_audit_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_secrets: {
         Row: {
           name: string
@@ -756,6 +800,50 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_lessons_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_policies: {
+        Row: {
+          can_browse: boolean
+          can_publish: boolean
+          can_send: boolean
+          created_at: string
+          daily_action_cap: number
+          employee_id: string
+          enabled: boolean
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          can_browse?: boolean
+          can_publish?: boolean
+          can_send?: boolean
+          created_at?: string
+          daily_action_cap?: number
+          employee_id: string
+          enabled?: boolean
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          can_browse?: boolean
+          can_publish?: boolean
+          can_send?: boolean
+          created_at?: string
+          daily_action_cap?: number
+          employee_id?: string
+          enabled?: boolean
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_policies_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

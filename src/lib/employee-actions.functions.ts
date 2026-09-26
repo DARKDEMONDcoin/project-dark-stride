@@ -92,9 +92,19 @@ export const runBrowserTask = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    await assertOwner(context.supabase, data.workspaceId);
+    const admin = await assertOwner(context.supabase, data.workspaceId);
+    const { enforceEmployeePolicy, recordAudit } = await import("./employee-policy.server");
+    await enforceEmployeePolicy(admin, data.workspaceId, "eva", "eva-browser-task");
     const { runBrowserAgent } = await import("./browser-agent.server");
     const r = await runBrowserAgent(data);
+    await recordAudit(admin, {
+      workspaceId: data.workspaceId,
+      employeeId: "eva",
+      actionId: "eva-browser-task",
+      provider: "browser",
+      status: r.status === "error" ? "failed" : "done",
+      values: { title: data.goal.slice(0, 120), url: data.startUrl ?? "" },
+    });
     return JSON.parse(JSON.stringify(r)) as typeof r;
   });
 

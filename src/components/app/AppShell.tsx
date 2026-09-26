@@ -2,7 +2,7 @@ import { LogoMark } from "@/components/site/LogoMark";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Portrait } from "@/components/site/Portrait";
-import { Bell, Globe, MailWarning, Menu, X, User, LogOut, Users } from "lucide-react";
+import { Bell, Globe, MailWarning, Menu, X, User, LogOut, ShieldCheck, Users } from "lucide-react";
 
 import { team } from "@/data/team";
 import { COUNTRIES } from "@/data/team-portraits";
@@ -328,6 +328,14 @@ export function AppShell({
                 title="رسائل بانتظار ردك"
               >
                 <MailWarning className="size-4.5" />
+              </Link>
+              <Link
+                to="/app/trust"
+                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
+                aria-label="الثقة والصلاحيات"
+                title="الثقة والصلاحيات"
+              >
+                <ShieldCheck className="size-4.5" />
               </Link>
               <Link
                 to="/app/approvals"
