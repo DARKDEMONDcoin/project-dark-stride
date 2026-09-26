@@ -50,6 +50,7 @@ import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppTasksRouteImport } from './routes/app.tasks'
 import { Route as AppTeamTasksRouteImport } from './routes/app.team-tasks'
+import { Route as AppTrustRouteImport } from './routes/app.trust'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as EmployeesIndexRouteImport } from './routes/employees.index'
@@ -279,6 +280,11 @@ const AppTeamTasksRoute = AppTeamTasksRouteImport.update({
   path: '/team-tasks',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTrustRoute = AppTrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
+  getParentRoute: () => AppRoute,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -442,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team-tasks': typeof AppTeamTasksRoute
+  '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
   '/use-cases/$id': typeof UseCasesIdRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team-tasks': typeof AppTeamTasksRoute
+  '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
   '/use-cases/$id': typeof UseCasesIdRoute
@@ -574,6 +582,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/tasks': typeof AppTasksRoute
   '/app/team-tasks': typeof AppTeamTasksRoute
+  '/app/trust': typeof AppTrustRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/employees/$id': typeof EmployeesIdRoute
   '/use-cases/$id': typeof UseCasesIdRoute
@@ -642,6 +651,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tasks'
     | '/app/team-tasks'
+    | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
     | '/use-cases/$id'
@@ -707,6 +717,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tasks'
     | '/app/team-tasks'
+    | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
     | '/use-cases/$id'
@@ -773,6 +784,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/tasks'
     | '/app/team-tasks'
+    | '/app/trust'
     | '/blog/$slug'
     | '/employees/$id'
     | '/use-cases/$id'
@@ -1135,6 +1147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTeamTasksRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/trust': {
+      id: '/app/trust'
+      path: '/trust'
+      fullPath: '/app/trust'
+      preLoaderRoute: typeof AppTrustRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -1317,6 +1336,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppTasksRoute: typeof AppTasksRoute
   AppTeamTasksRoute: typeof AppTeamTasksRoute
+  AppTrustRoute: typeof AppTrustRoute
   AppIndexRoute: typeof AppIndexRoute
   AppChatIdRoute: typeof AppChatIdRoute
   AppChatIndexRoute: typeof AppChatIndexRoute
@@ -1340,6 +1360,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppTasksRoute: AppTasksRoute,
   AppTeamTasksRoute: AppTeamTasksRoute,
+  AppTrustRoute: AppTrustRoute,
   AppIndexRoute: AppIndexRoute,
   AppChatIdRoute: AppChatIdRoute,
   AppChatIndexRoute: AppChatIndexRoute,
