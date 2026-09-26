@@ -27,7 +27,8 @@ export type SearchIntent = {
 };
 
 const R: Record<Exclude<SearchKind, "general">, RegExp> = {
-  news: /(خبر|أخبار|اخبار|عاجل|حدث|أحداث|تصريح|انتخابات|حرب|news|breaking|announce)/i,
+  // «حدث» بلا «أ/ا» قبلها: وإلا صُنّفت «أحدث اتجاهات التصميم» خبراً وجاءت نتائج إخبارية عشوائية.
+  news: /(خبر|أخبار|اخبار|عاجل|(?<![أاإآ])حدث|أحداث|تصريح|انتخابات|حرب|news|breaking|announce)/i,
   finance: /(سهم|أسهم|اسهم|بورصة|البورصة|دولار|يورو|سعر الصرف|ذهب|بيتكوين|عملة|تضخم|فائدة|stock|shares|crypto|bitcoin|exchange rate|inflation|nasdaq)/i,
   prices: /(سعر|أسعار|اسعار|تكلفة|بكام|كام سعر|باقة|باقات|اشتراك|price|pricing|cost|plan)/i,
   sports: /(مباراة|ماتش|دوري|كأس|نتيجة|الأهلي|الزمالك|منتخب|لاعب|هدف|match|league|score|fifa)/i,
