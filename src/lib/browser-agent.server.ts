@@ -253,7 +253,8 @@ export async function runBrowserAgent(input: {
 
       if (d.action === "done") return finish({ status: "done", answer: d.answer?.trim() || "انتهت المهمة." });
 
-      if (d.action === "handoff" || BLOCKERS.test(`${obs.t} ${(obs.x ?? "").slice(0, 600)}`) && d.action !== "navigate" && n > 1 && /captcha|robot|روبوت/i.test(obs.x ?? "")) {
+      const captcha = /captcha|not a robot|verify you are human|لست روبوت/i.test(`${obs.t} ${(obs.x ?? "").slice(0, 1500)}`);
+      if (d.action === "handoff" || (captcha && BLOCKERS.test(obs.x ?? ""))) {
         keepSession = true;
         return finish({
           status: "handoff",
