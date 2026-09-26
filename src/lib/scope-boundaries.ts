@@ -47,7 +47,8 @@ export function scopeBoundaryBlock(employeeId: string, message?: string): string
     );
   }
 
-  const handoff = message ? detectHandoff(message, employeeId) : null;
+  const handoff =
+    precomputed !== undefined ? precomputed : message ? detectHandoff(message, employeeId) : null;
   if (handoff) {
     lines.push(
       `تنبيه لهذه الرسالة تحديداً: طلب المستخدم (${handoff.topic}) من اختصاص ${handoff.name} — ${handoff.role}. وجّهه إليه الآن ولا تنفّذ الطلب.`,

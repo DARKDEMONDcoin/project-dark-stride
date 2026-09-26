@@ -799,7 +799,13 @@ export async function runEmployeeTurn(
       // حقنهما في سؤال معرفي يناقض أمر «أجب في ثلاثة أسطر بلا مخرج عمل».
       intent === "work" ? frontierEdgeBlock(data.employeeId as EmployeeId) : "",
       intent === "work" ? playbookFor(data.employeeId, data.message) : "",
-      scopeBoundaryBlock(data.employeeId, data.message),
+      scopeBoundaryBlock(
+        data.employeeId,
+        data.message,
+        intent === "smalltalk"
+          ? undefined
+          : await (await import("./smart-route.server")).smartHandoff(data.message, data.employeeId),
+      ),
       sirajMemory,
       nourMemory,
       genericMemory,
