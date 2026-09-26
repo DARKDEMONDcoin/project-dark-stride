@@ -16,3 +16,4 @@
 - Browser actions show a live screenshot BEFORE approval (ActionCard via previewBrowserAction, Telegram via browsePage in viewPendingAction) and after execution — owner sees exactly what will be filled.
 - Form requests with a URL and explicit field values deterministically create the shared browser approval action; they never depend solely on model JSON output.
 - Supabase Function Secrets and the TanStack server runtime are isolated, write-only secret stores; never claim one can enumerate or read values from the other. Platform keys needed by TanStack must exist in runtime secrets or `app_secrets`.
+- Multi-step browsing lives in `src/lib/browser-agent.server.ts` (observe→decide→act loop, page content treated as untrusted, sensitive clicks stop for approval, captcha/login hands off the live Browserbase session and resumes by sessionId); keeps agent safety rules in one place.

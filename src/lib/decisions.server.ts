@@ -78,7 +78,10 @@ function parseDrafts(raw: string): DecisionDraft[] {
 
 /** يستخلص القرارات من تبادل واحد. لا ينادي النموذج إن كان التبادل قصيراً جداً. */
 export async function extractDecisions(request: string, reply: string): Promise<DecisionDraft[]> {
-  if (reply.trim().length < 220 && request.trim().length < 120) return [];
+  // الجمل القصيرة الحاسمة (أرقام، ميزانيات، «قررنا/ممنوع/دائماً») تُستخلص حتى لو كانت قصيرة.
+  const decisive = /[\d٠-٩]|قرر|اعتمد|ممنوع|لا تستخدم|دائما|دائماً|أبدا|أبداً|ميزاني|سعر|budget|always|never/i.test(request);
+  if (!decisive && reply.trim().length < 220 && request.trim().length < 120) return [];
+  if (request.trim().length < 4) return [];
   const clip = (t: string, max: number) => (t.length > max ? `${t.slice(0, max)}…` : t);
   try {
     const raw = await freeChat(
