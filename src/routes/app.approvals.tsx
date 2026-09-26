@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ShareButton } from "@/components/app/ShareButton";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, X, PartyPopper, Loader2 } from "lucide-react";
@@ -187,6 +188,9 @@ function ApprovalsPage() {
                 ) : null}
 
                 <div className="mt-5 flex flex-wrap gap-2">
+                  {workspace?.id ? (
+                    <ShareButton workspaceId={workspace.id} employeeId={a.employee_id} title={a.title} body={a.output ?? a.detail ?? ""} />
+                  ) : null}
                   <button
                     onClick={() => void act(a.id, "done")}
                     disabled={busyId === a.id}
