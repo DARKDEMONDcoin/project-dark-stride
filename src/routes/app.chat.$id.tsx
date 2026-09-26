@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ListenButton } from "@/components/app/ListenButton";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -1282,7 +1283,12 @@ function ChatView({
                           </>
 
                         ) : (
-                          <Markdown body={body} onOpenApp={openAppInChat} />
+                          <>
+                            <Markdown body={body} onOpenApp={openAppInChat} />
+                            {workspace && body.trim().length > 2 ? (
+                              <ListenButton workspaceId={workspace.id} text={body} />
+                            ) : null}
+                          </>
                         )}
                         {!isUser &&
                         id === "nour" &&
