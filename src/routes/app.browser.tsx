@@ -31,6 +31,19 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   error: { label: "تعذّر التنفيذ", cls: "bg-coral/15 text-coral" },
 };
 
+const ACTION_LABEL: Record<string, string> = {
+  navigate: "فتح صفحة",
+  click: "ضغط",
+  type: "كتابة",
+  scroll: "تمرير",
+  back: "رجوع",
+  done: "النتيجة",
+  handoff: "تسليم لك",
+  error: "خطأ",
+};
+
+const PURCHASE_INTENT = /اشتر|شراء|احجز|حجز|اطلب|ادفع|buy|book|order|checkout/i;
+
 function BrowserPage() {
   const { data: workspace } = useWorkspace();
   const runTask = useServerFn(runBrowserTask);
@@ -203,6 +216,19 @@ function BrowserPage() {
                   </div>
                 ) : null}
               </div>
+              {PURCHASE_INTENT.test(goal) && task.data.status !== "handoff" && task.data.steps.at(-1)?.url ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-amber/30 bg-amber/10 p-4 text-sm">
+                  <p className="font-bold">جهّزنا لك الصفحة — الدفع والتأكيد النهائي بيدك وحدك.</p>
+                  <a
+                    href={task.data.steps.at(-1)!.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background"
+                  >
+                    <ExternalLink className="size-3.5" /> افتح الصفحة وأكمل بنفسك
+                  </a>
+                </div>
+              ) : null}
               <ol className="space-y-3">
                 {task.data.steps.map((s) => (
                   <li key={s.n} className="flex gap-3 rounded-3xl border border-border bg-card p-3">
@@ -218,7 +244,7 @@ function BrowserPage() {
                     ) : null}
                     <div className="min-w-0 text-sm">
                       <p className="font-bold">
-                        الخطوة {s.n} · {s.action}
+                        الخطوة {s.n} · {ACTION_LABEL[s.action] ?? s.action}
                       </p>
                       <p className="text-muted-foreground">{s.note}</p>
                       <p className="truncate text-xs text-muted-foreground" dir="ltr">
