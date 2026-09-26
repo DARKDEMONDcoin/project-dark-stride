@@ -855,6 +855,47 @@ export type Database = {
           },
         ]
       }
+      inbox_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message_id: string
+          sender: string | null
+          subject: string | null
+          summary: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message_id: string
+          sender?: string | null
+          subject?: string | null
+          summary?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message_id?: string
+          sender?: string | null
+          subject?: string | null
+          summary?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbox_alerts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_credentials: {
         Row: {
           config: Json
