@@ -41,6 +41,7 @@ import { Route as AppBrowserRouteImport } from './routes/app.browser'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppDecisionsRouteImport } from './routes/app.decisions'
 import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
+import { Route as AppInboxWatchRouteImport } from './routes/app.inbox-watch'
 import { Route as AppIntegrationsRouteImport } from './routes/app.integrations'
 import { Route as AppProposalsRouteImport } from './routes/app.proposals'
 import { Route as AppQueueRouteImport } from './routes/app.queue'
@@ -232,6 +233,11 @@ const AppDiscoveryRoute = AppDiscoveryRouteImport.update({
   path: '/discovery',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInboxWatchRoute = AppInboxWatchRouteImport.update({
+  id: '/inbox-watch',
+  path: '/inbox-watch',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppIntegrationsRoute = AppIntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
@@ -421,6 +427,7 @@ export interface FileRoutesByFullPath {
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
   '/app/discovery': typeof AppDiscoveryRoute
+  '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/proposals': typeof AppProposalsRoute
   '/app/queue': typeof AppQueueRoute
@@ -484,6 +491,7 @@ export interface FileRoutesByTo {
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
   '/app/discovery': typeof AppDiscoveryRoute
+  '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/proposals': typeof AppProposalsRoute
   '/app/queue': typeof AppQueueRoute
@@ -549,6 +557,7 @@ export interface FileRoutesById {
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
   '/app/discovery': typeof AppDiscoveryRoute
+  '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
   '/app/proposals': typeof AppProposalsRoute
   '/app/queue': typeof AppQueueRoute
@@ -615,6 +624,7 @@ export interface FileRouteTypes {
     | '/app/calendar'
     | '/app/decisions'
     | '/app/discovery'
+    | '/app/inbox-watch'
     | '/app/integrations'
     | '/app/proposals'
     | '/app/queue'
@@ -678,6 +688,7 @@ export interface FileRouteTypes {
     | '/app/calendar'
     | '/app/decisions'
     | '/app/discovery'
+    | '/app/inbox-watch'
     | '/app/integrations'
     | '/app/proposals'
     | '/app/queue'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/app/calendar'
     | '/app/decisions'
     | '/app/discovery'
+    | '/app/inbox-watch'
     | '/app/integrations'
     | '/app/proposals'
     | '/app/queue'
@@ -1047,6 +1059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDiscoveryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inbox-watch': {
+      id: '/app/inbox-watch'
+      path: '/inbox-watch'
+      fullPath: '/app/inbox-watch'
+      preLoaderRoute: typeof AppInboxWatchRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/integrations': {
       id: '/app/integrations'
       path: '/integrations'
@@ -1269,6 +1288,7 @@ interface AppRouteChildren {
   AppCalendarRoute: typeof AppCalendarRoute
   AppDecisionsRoute: typeof AppDecisionsRoute
   AppDiscoveryRoute: typeof AppDiscoveryRoute
+  AppInboxWatchRoute: typeof AppInboxWatchRoute
   AppIntegrationsRoute: typeof AppIntegrationsRoute
   AppProposalsRoute: typeof AppProposalsRoute
   AppQueueRoute: typeof AppQueueRoute
@@ -1291,6 +1311,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCalendarRoute: AppCalendarRoute,
   AppDecisionsRoute: AppDecisionsRoute,
   AppDiscoveryRoute: AppDiscoveryRoute,
+  AppInboxWatchRoute: AppInboxWatchRoute,
   AppIntegrationsRoute: AppIntegrationsRoute,
   AppProposalsRoute: AppProposalsRoute,
   AppQueueRoute: AppQueueRoute,
