@@ -50,6 +50,14 @@ export const Route = createFileRoute("/api/public/inbox-watch")({
                 .eq("workspace_id", ws);
               const config = await loadTelegramConfig(admin, ws).catch(() => null);
               const token = (config && !config.shared && config.botToken) || (await platformBotToken());
+              const { data: waLinks } = await admin
+                .from("command_links")
+                .select("external_id")
+                .eq("channel", "whatsapp")
+                .eq("status", "active")
+                .eq("workspace_id", ws);
+              const { whatsappCreds, sendWhatsapp } = await import("@/lib/whatsapp.server");
+              const waCreds = waLinks?.length ? await whatsappCreds(admin, ws).catch(() => null) : null;
               for (const it of important) {
                 // مرة واحدة لكل رسالة: القيد الفريد يمنع التكرار بين الدورات.
                 const { error } = await db.from("inbox_alerts").insert({
@@ -61,14 +69,26 @@ export const Route = createFileRoute("/api/public/inbox-watch")({
                   summary: it.summary.slice(0, 500),
                 });
                 if (error) continue;
-                if (!token || !links?.length) continue;
-                const html = it.scam
-                  ? `🚨 <b>تحذير احتيال</b> — أمَل\nمن: ${esc(it.from)}\n«${esc(it.subject)}»\n${esc(it.scamReason || it.summary)}\n\nلا تضغط أي رابط ولا ترد.`
-                  : `📬 <b>رسالة عاجلة تنتظر ردك</b> — أمَل\nمن: ${esc(it.from)}\n«${esc(it.subject)}»\n${esc(it.summary)}\n\nالرد جاهز في صفحة «رسائل بانتظار ردك».`;
-                for (const l of links) {
-                  await tg(token, "sendMessage", { chat_id: l.external_id, text: html, parse_mode: "HTML" }).catch(() => null);
+                let delivered = false;
+                if (token && links?.length) {
+                  const html = it.scam
+                    ? `🚨 <b>تحذير احتيال</b> — أمَل\nمن: ${esc(it.from)}\n«${esc(it.subject)}»\n${esc(it.scamReason || it.summary)}\n\nلا تضغط أي رابط ولا ترد.`
+                    : `📬 <b>رسالة عاجلة تنتظر ردك</b> — أمَل\nمن: ${esc(it.from)}\n«${esc(it.subject)}»\n${esc(it.summary)}\n\nالرد جاهز في صفحة «رسائل بانتظار ردك».`;
+                  for (const l of links) {
+                    await tg(token, "sendMessage", { chat_id: l.external_id, text: html, parse_mode: "HTML" }).catch(() => null);
+                  }
+                  delivered = true;
                 }
-                sent += 1;
+                if (waCreds && waLinks?.length) {
+                  const text = it.scam
+                    ? `🚨 *تحذير احتيال* — أمَل\nمن: ${it.from}\n«${it.subject}»\n${it.scamReason || it.summary}\n\nلا تضغط أي رابط ولا ترد.`
+                    : `📬 *رسالة عاجلة تنتظر ردك* — أمَل\nمن: ${it.from}\n«${it.subject}»\n${it.summary}\n\nالرد جاهز في صفحة «رسائل بانتظار ردك».`;
+                  for (const l of waLinks) {
+                    await sendWhatsapp(waCreds, String(l.external_id).replace(/\D/g, ""), text.slice(0, 3500)).catch(() => null);
+                  }
+                  delivered = true;
+                }
+                if (delivered) sent += 1;
               }
             }
             report.push({ workspaceId: ws, alerts: sent });
