@@ -40,6 +40,7 @@ import { Route as AppBrainRouteImport } from './routes/app.brain'
 import { Route as AppBrowserRouteImport } from './routes/app.browser'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppDecisionsRouteImport } from './routes/app.decisions'
+import { Route as AppDesignEditorRouteImport } from './routes/app.design-editor'
 import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
 import { Route as AppInboxWatchRouteImport } from './routes/app.inbox-watch'
 import { Route as AppIntegrationsRouteImport } from './routes/app.integrations'
@@ -229,6 +230,11 @@ const AppCalendarRoute = AppCalendarRouteImport.update({
 const AppDecisionsRoute = AppDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDesignEditorRoute = AppDesignEditorRouteImport.update({
+  id: '/design-editor',
+  path: '/design-editor',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDiscoveryRoute = AppDiscoveryRouteImport.update({
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/app/browser': typeof AppBrowserRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
+  '/app/design-editor': typeof AppDesignEditorRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
@@ -511,6 +518,7 @@ export interface FileRoutesByTo {
   '/app/browser': typeof AppBrowserRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
+  '/app/design-editor': typeof AppDesignEditorRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
@@ -580,6 +588,7 @@ export interface FileRoutesById {
   '/app/browser': typeof AppBrowserRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/decisions': typeof AppDecisionsRoute
+  '/app/design-editor': typeof AppDesignEditorRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/inbox-watch': typeof AppInboxWatchRoute
   '/app/integrations': typeof AppIntegrationsRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/app/browser'
     | '/app/calendar'
     | '/app/decisions'
+    | '/app/design-editor'
     | '/app/discovery'
     | '/app/inbox-watch'
     | '/app/integrations'
@@ -717,6 +727,7 @@ export interface FileRouteTypes {
     | '/app/browser'
     | '/app/calendar'
     | '/app/decisions'
+    | '/app/design-editor'
     | '/app/discovery'
     | '/app/inbox-watch'
     | '/app/integrations'
@@ -785,6 +796,7 @@ export interface FileRouteTypes {
     | '/app/browser'
     | '/app/calendar'
     | '/app/decisions'
+    | '/app/design-editor'
     | '/app/discovery'
     | '/app/inbox-watch'
     | '/app/integrations'
@@ -1090,6 +1102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDecisionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/design-editor': {
+      id: '/app/design-editor'
+      path: '/design-editor'
+      fullPath: '/app/design-editor'
+      preLoaderRoute: typeof AppDesignEditorRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/discovery': {
       id: '/app/discovery'
       path: '/discovery'
@@ -1346,6 +1365,7 @@ interface AppRouteChildren {
   AppBrowserRoute: typeof AppBrowserRoute
   AppCalendarRoute: typeof AppCalendarRoute
   AppDecisionsRoute: typeof AppDecisionsRoute
+  AppDesignEditorRoute: typeof AppDesignEditorRoute
   AppDiscoveryRoute: typeof AppDiscoveryRoute
   AppInboxWatchRoute: typeof AppInboxWatchRoute
   AppIntegrationsRoute: typeof AppIntegrationsRoute
@@ -1370,6 +1390,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBrowserRoute: AppBrowserRoute,
   AppCalendarRoute: AppCalendarRoute,
   AppDecisionsRoute: AppDecisionsRoute,
+  AppDesignEditorRoute: AppDesignEditorRoute,
   AppDiscoveryRoute: AppDiscoveryRoute,
   AppInboxWatchRoute: AppInboxWatchRoute,
   AppIntegrationsRoute: AppIntegrationsRoute,
