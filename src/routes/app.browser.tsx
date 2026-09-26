@@ -79,7 +79,7 @@ function BrowserPage() {
   return (
     <AppShell
       title="المتصفح المنفّذ"
-      lead="أمَل وسالم وآدم يتصفحون ويبحثون ويقارنون عنك خطوة بخطوة — ولا ينفّذون أي خطوة حساسة دون إذنك."
+      lead="قارن الخيارات من مواقعها الأصلية، وراجع الأسعار والتفاصيل قبل أن تتخذ قرارك."
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,26rem)_1fr]">
         <section className="space-y-4 rounded-3xl border border-border bg-card p-5">
@@ -104,8 +104,8 @@ function BrowserPage() {
               rows={4}
               placeholder={
                 mode === "task"
-                  ? "مثال: ابحث عن أرخص باقة استضافة سنوية تدعم العربية واذكر سعرها ورابطها"
-                  : "مثال: قارن الأسعار ومدة التوصيل وسياسة الاسترجاع"
+                  ? "مثال: هات أفضل سيارة عائلية تناسب ميزانيتي في الرياض، وقارنها بالبدائل وجهّز روابط الشراء؛ أنا أكمل الدفع بنفسي."
+                  : "مثال: قارن ثلاثة فنادق قريبة من وسط دبي: السعر، تقييم النزلاء، سياسة الإلغاء ورابط الحجز؛ أنا أؤكد الحجز بنفسي."
               }
               className="mt-1.5 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-normal"
             />

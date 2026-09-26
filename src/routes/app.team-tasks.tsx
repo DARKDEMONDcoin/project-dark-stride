@@ -72,7 +72,7 @@ function TeamTasksPage() {
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             rows={3}
-            placeholder="مثال: جهّزوا حملة إطلاق منتجنا الجديد: بحث سريع، مقال، ثلاثة منشورات، وتصور للتصميم."
+            placeholder="مثال: هنفتح كافيه في الرياض؛ حلّلوا المنافسين، اختاروا فكرة تميّزنا، واكتبوا حملة افتتاح وتصوّروا إعلاناً أراجعه قبل النشر."
             className="w-full rounded-xl border border-border bg-background p-3 text-sm"
           />
           <button

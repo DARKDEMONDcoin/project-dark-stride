@@ -228,7 +228,7 @@ const openingLinks = [
   { to: "/app/trust", label: "الصلاحيات", detail: "حدد ما يستطيع كل موظف فعله وراجع سجل إجراءاته.", icon: ShieldCheck },
 ] as const;
 
-function OpeningMenu({ compactTitle }: { compactTitle: boolean }) {
+function OpeningMenu() {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => setOpen(false), [pathname]);
@@ -259,7 +259,7 @@ function OpeningMenu({ compactTitle }: { compactTitle: boolean }) {
           />
           <nav
             aria-label="أدوات الفريق"
-            className="absolute end-0 z-50 mt-2 max-h-[min(72dvh,38rem)] w-[min(21rem,calc(100vw-1rem))] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lift"
+            className="fixed inset-x-2 top-[4.25rem] z-50 max-h-[min(72dvh,38rem)] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lift sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-2 sm:w-[21rem]"
           >
             <p className="px-3 pb-2 pt-1 text-xs font-bold text-muted-foreground">العمل والمراجعة</p>
             {openingLinks.map((item, index) => (
@@ -389,7 +389,7 @@ export function AppShell({
               >
                 <Bell className="size-4.5" />
               </Link>
-              <OpeningMenu compactTitle={compactTitle} />
+              <OpeningMenu />
               <UserMenu name={profile?.full_name ?? null} />
             </div>
           </div>

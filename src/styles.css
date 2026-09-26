@@ -45893,6 +45893,9 @@ html {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
+.is-chat-shell .app-topbar-controls {
+  overflow: visible;
+}
 
 /* محادثة الهاتف: كل رد وبطاقة يبقيان داخل الشاشة، دون قص أفقي. */
 @media (max-width: 640px) {
