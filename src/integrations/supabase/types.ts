@@ -1530,6 +1530,53 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_outputs: {
+        Row: {
+          body: string
+          created_at: string
+          employee_id: string | null
+          expires_at: string | null
+          id: string
+          revoked: boolean
+          title: string
+          token: string
+          views: number
+          workspace_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          employee_id?: string | null
+          expires_at?: string | null
+          id?: string
+          revoked?: boolean
+          title: string
+          token?: string
+          views?: number
+          workspace_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          employee_id?: string | null
+          expires_at?: string | null
+          id?: string
+          revoked?: boolean
+          title?: string
+          token?: string
+          views?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_outputs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_assets: {
         Row: {
           alt: string | null
@@ -2051,6 +2098,16 @@ export type Database = {
       bump_rate_limit: {
         Args: { _bucket: string; _identifier: string; _window_seconds: number }
         Returns: number
+      }
+      get_shared_output: {
+        Args: { _token: string }
+        Returns: {
+          body: string
+          company: string
+          created_at: string
+          employee_id: string
+          title: string
+        }[]
       }
       owns_workspace: { Args: { _workspace_id: string }; Returns: boolean }
       verify_cron_token: {
