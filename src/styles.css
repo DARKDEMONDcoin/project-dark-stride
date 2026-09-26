@@ -45896,6 +45896,12 @@ html {
 .is-chat-shell .app-topbar-controls {
   overflow: visible;
 }
+@media (max-width: 639px) {
+  .is-chat-shell .chat-topbar-actions {
+    flex: 1 1 auto;
+    width: 0;
+  }
+}
 
 /* محادثة الهاتف: كل رد وبطاقة يبقيان داخل الشاشة، دون قص أفقي. */
 @media (max-width: 640px) {

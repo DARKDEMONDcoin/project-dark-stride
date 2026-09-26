@@ -228,7 +228,7 @@ const openingLinks = [
   { to: "/app/trust", label: "الصلاحيات", detail: "حدد ما يستطيع كل موظف فعله وراجع سجل إجراءاته.", icon: ShieldCheck },
 ] as const;
 
-function OpeningMenu() {
+function OpeningMenu({ compactTitle }: { compactTitle: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => setOpen(false), [pathname]);
@@ -259,7 +259,7 @@ function OpeningMenu() {
           />
           <nav
             aria-label="أدوات الفريق"
-            className="fixed inset-x-2 top-[4.25rem] z-50 max-h-[min(72dvh,38rem)] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lift sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-2 sm:w-[21rem]"
+            className={cn("fixed inset-x-2 z-50 max-h-[min(72dvh,38rem)] overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-lift sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-2 sm:w-[21rem]", compactTitle ? "top-[7.25rem]" : "top-[4.25rem]")}
           >
             <p className="px-3 pb-2 pt-1 text-xs font-bold text-muted-foreground">العمل والمراجعة</p>
             {openingLinks.map((item, index) => (
@@ -352,7 +352,7 @@ export function AppShell({
             embedded && "hidden",
           )}
         >
-          <div className="app-topbar-inner flex min-h-14 items-center gap-2 px-2 py-1.5 sm:gap-2.5 sm:px-3">
+          <div className={cn("app-topbar-inner flex min-h-14 items-center gap-2 px-2 py-1.5 sm:gap-2.5 sm:px-3", compactTitle && "max-sm:flex-wrap")}>
             <button
               className="grid size-10 shrink-0 place-items-center rounded-xl border border-border md:hidden"
               onClick={() => setMobileOpen(true)}
@@ -360,7 +360,7 @@ export function AppShell({
             >
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
-            <div className={cn("min-w-0 flex-1", compactTitle && "hidden sm:block")}>
+            <div className="min-w-0 flex-1">
               <h1 className="truncate font-display text-base font-black sm:text-lg">{title}</h1>
               {lead ? (
                 <p className="truncate text-xs text-muted-foreground sm:text-sm">{lead}</p>
@@ -369,7 +369,7 @@ export function AppShell({
             <div
               className={cn(
                 "app-topbar-controls flex min-w-0 shrink-0 items-center gap-1 sm:gap-2",
-                compactTitle && "min-w-0 flex-1 sm:flex-initial",
+                compactTitle && "max-sm:w-full max-sm:flex-auto sm:flex-initial",
               )}
             >
               {actions}
@@ -389,7 +389,7 @@ export function AppShell({
               >
                 <Bell className="size-4.5" />
               </Link>
-              <OpeningMenu />
+              <OpeningMenu compactTitle={compactTitle} />
               <UserMenu name={profile?.full_name ?? null} />
             </div>
           </div>
