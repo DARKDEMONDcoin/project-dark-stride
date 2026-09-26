@@ -222,7 +222,7 @@ function UserMenu({ name }: { name: string | null }) {
 const openingLinks = [
   { to: "/app/team-tasks", label: "مهام الفريق", detail: "كلّف الفريق بإطلاق مشروعك، واستلم خطة تجمع البحث والمحتوى والتصميم.", icon: Users },
   { to: "/app/approvals", label: "الموافقات", detail: "راجع ما أعدّه الفريق قبل إرساله أو نشره.", icon: CheckCircle2 },
-  { to: "/app/browser", label: "المتصفح", detail: "قارن سيارة وفندقاً ورحلة، واحصل على الخيارات وروابطها قبل أن تحجز بنفسك.", icon: Globe },
+  { to: "/app/browser", label: "المتصفح", detail: "ابحث عن سيارة بسعر يناسبك، وقارن الفنادق والرحلات من مواقعها الأصلية.", icon: Globe },
   { to: "/app/inbox-watch", label: "بريد أمَل", detail: "اعثر على رسالة عميل مهمة، وجهّز رداً لا يُرسل دونك.", icon: MailWarning },
   { to: "/app/design-editor", label: "محرر دانة", detail: "حوّل صورتك إلى إعلان عربي بمقاس المنشور أو الستوري، ثم حمّله.", icon: Palette },
   { to: "/app/trust", label: "الصلاحيات", detail: "حدد ما يستطيع كل موظف فعله وراجع سجل إجراءاته.", icon: ShieldCheck },
