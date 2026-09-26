@@ -322,6 +322,14 @@ export function AppShell({
                 <Users className="size-4.5" />
               </Link>
               <Link
+                to="/app/inbox-watch"
+                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
+                aria-label="رسائل بانتظار ردك"
+                title="رسائل بانتظار ردك"
+              >
+                <MailWarning className="size-4.5" />
+              </Link>
+              <Link
                 to="/app/approvals"
                 className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
                 aria-label="التنبيهات"
