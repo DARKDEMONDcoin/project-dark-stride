@@ -131,7 +131,7 @@ function TrustPage() {
             {q.data.decisions.map((d) => (
               <div key={d.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-3">
                 <div className="text-sm">
-                  <div className="font-medium">📌 {d.title}</div>
+                  <div className="font-medium">{d.title}</div>
                   <div className="text-muted-foreground">{d.decision}</div>
                   <div className="text-xs text-muted-foreground">سجّله: {nameOf(d.employee_id)}</div>
                 </div>
