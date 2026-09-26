@@ -284,8 +284,7 @@ export async function runBrowserAgent(input: {
 
       if (d.action === "navigate" && d.url && /^https?:\/\//i.test(d.url)) {
         const target = normUrl(d.url);
-        const baseSeen = [...visited].some((v) => v.split("?")[0] === target.split("?")[0]);
-        if (visited.has(target) || baseSeen) {
+        if (visited.has(target)) {
           blockedRepeats++;
           history.push(`   ⛔ مُنع: الرابط ${d.url} (أو نفس الصفحة) زرته سابقاً — استخدم المعلومات التي لديك.`);
           continue;
