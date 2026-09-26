@@ -306,6 +306,14 @@ export function AppShell({
             >
               {actions}
               <Link
+                to="/app/browser"
+                className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
+                aria-label="المتصفح المنفّذ"
+                title="المتصفح المنفّذ"
+              >
+                <Globe className="size-4.5" />
+              </Link>
+              <Link
                 to="/app/approvals"
                 className="relative hidden size-10 shrink-0 place-items-center rounded-xl border border-border transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid"
                 aria-label="التنبيهات"

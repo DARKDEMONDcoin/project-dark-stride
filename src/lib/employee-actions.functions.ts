@@ -76,3 +76,42 @@ export const runEmployeeAction = createServerFn({ method: "POST" })
     const safe = JSON.parse(JSON.stringify(res.result ?? null)) as Json;
     return { actionId: res.actionId, provider: res.provider, ok: true as const, result: safe };
   });
+
+/** مهمة تصفح متعددة الخطوات (قراءة وتنقل وبحث) — تتوقف عند أي خطوة حساسة. */
+export const runBrowserTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        goal: z.string().trim().min(5).max(1500),
+        startUrl: z.string().url().max(2000).optional(),
+        resumeSessionId: z.string().max(100).optional(),
+        maxSteps: z.number().int().min(1).max(15).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, data.workspaceId);
+    const { runBrowserAgent } = await import("./browser-agent.server");
+    const r = await runBrowserAgent(data);
+    return JSON.parse(JSON.stringify(r)) as typeof r;
+  });
+
+/** جولة مقارنة بين 2–5 مواقع بجدول ومصادر. */
+export const compareSitesTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        goal: z.string().trim().min(5).max(1000),
+        urls: z.array(z.string().url().max(2000)).min(2).max(5),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, data.workspaceId);
+    const { compareSites } = await import("./browser-agent.server");
+    return compareSites({ goal: data.goal, urls: data.urls });
+  });
