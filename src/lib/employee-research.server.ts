@@ -393,11 +393,26 @@ export async function employeeResearch(
   const tOpts = { topic: intent.tavilyTopic, timeRange: intent.timeRange, country: opts.country };
   // نص بلا كلمات حقيقية (لوحة مفاتيح عشوائية): لا نحرق من حصة Tavily المدفوعة عليه.
   const { looksLikeGibberish } = await import("./search-intent");
+  /**
+   * Tavily بالعربية وبالإنجليزية معاً: أغلب المراجع المتخصصة (معايير الإعلانات، ترندات
+   * التصميم، تحديثات جوجل) منشورة بالإنجليزية، والسؤال العربي وحده كان يعيد أخباراً عامة.
+   */
+  const tavilyBoth = async (o: typeof tOpts & { timeoutMs?: number }) => {
+    const qs = [tq, bridged && bridged !== tq ? bridged : ""].filter(Boolean) as string[];
+    const lists = await Promise.all(qs.map((q) => tavilySearch(q, o).catch(() => [])));
+    const seen = new Set<string>();
+    return lists.flat().filter((r: any) => {
+      const u = String(r?.url ?? "");
+      if (!u || seen.has(u)) return false;
+      seen.add(u);
+      return true;
+    });
+  };
   let tavilyUsed = looksLikeGibberish(seed);
   if (intent.tavilyFirst && tavilyAvailable()) {
     tavilyUsed = true;
     jobs.unshift(async (): Promise<Chunk | null> => {
-      const rows = await tavilySearch(tq, tOpts);
+      const rows = await tavilyBoth(tOpts);
       return rows.length ? { part: "", used: "Tavily", findings: rows } : null;
     });
   }
@@ -429,7 +444,7 @@ export async function employeeResearch(
   // احتياطي: أدلة قليلة أو بلا أي تأكيد متقاطع ← طلب Tavily واحد يسد الفجوة.
   const weak = ranked.length < 5 || !ranked.some((r) => r.corroborated);
   if (!tavilyUsed && weak && tavilyAvailable()) {
-    const rows = await tavilySearch(tq, { ...tOpts, timeoutMs: 6_000 });
+    const rows = await tavilyBoth({ ...tOpts, timeoutMs: 6_000 });
     if (rows.length) {
       chunks.push({ part: "", used: "Tavily", findings: rows });
       all = [...all, ...rows];
