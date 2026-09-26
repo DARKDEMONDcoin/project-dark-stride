@@ -126,6 +126,8 @@ const SYSTEM = `أنت منفّذ تصفح دقيق يعمل لصالح مالك
 3) لا تكتب في حقول كلمات المرور أو البطاقات.
 4) إن ظهرت كابتشا أو طُلب تسجيل دخول لإكمال الهدف فاختر handoff.
 5) اختر done فور امتلاكك إجابة كافية، واكتب answer بالعربية منظّمة (نقاط أو جدول Markdown) مع الروابط الحقيقية التي رأيتها فقط. لا تخترع أرقاماً.
+6) السرعة مهمة: إن كانت المعلومة المطلوبة ظاهرة في نص الصفحة الحالية فاختر done فوراً. لا تعِد التحقق، ولا تفتح رابطاً زرته سابقاً، ولا تخمّن روابط بمعاملات (?billing=...) — اقرأ النص الموجود بدلاً من ذلك.
+7) إن احتوى النص على خيارين (شهري/سنوي مثلاً) فاستخرج الاثنين من نفس الصفحة دون تنقل.
 أعد JSON فقط بهذا الشكل:
 {"action":"navigate|click|type|scroll|back|done|handoff","index":رقم العنصر عند click/type,"url":"عند navigate","text":"نص الكتابة عند type","note":"سبب الخطوة باختصار","answer":"عند done/handoff"}`;
 
@@ -213,9 +215,9 @@ export async function runBrowserAgent(input: {
     await cdp.send("Page.enable", {}, sid);
 
     const settle = async () => {
-      for (let i = 0; i < 12; i++) {
-        await wait(600);
-        if ((await evalJs("document.readyState").catch(() => "")) === "complete" && i >= 2) break;
+      for (let i = 0; i < 15; i++) {
+        await wait(400);
+        if ((await evalJs("document.readyState").catch(() => "")) === "complete" && i >= 1) break;
       }
     };
     if (input.startUrl && !input.resumeSessionId) {
@@ -224,28 +226,40 @@ export async function runBrowserAgent(input: {
     }
 
     const { freeChat } = await import("./nour-research.server");
+    const normUrl = (u: string) => u.replace(/#.*$/, "").replace(/\/$/, "").toLowerCase();
+    const visited = new Set<string>();
+    let blockedRepeats = 0;
 
     for (let n = 1; n <= maxSteps; n++) {
       if (Date.now() > deadline) break;
       const obs = JSON.parse((await evalJs(OBSERVE)) ?? "{}") as Observation;
-      const shot = await cdp.send("Page.captureScreenshot", { format: "jpeg", quality: 55 }, sid).catch(() => null);
-      const screenshotUrl = shot?.data ? await uploadShot(shot.data) : null;
+      if (obs.u) visited.add(normUrl(obs.u));
+      const shotP = cdp
+        .send("Page.captureScreenshot", { format: "jpeg", quality: 50 }, sid)
+        .then((shot) => (shot?.data ? uploadShot(shot.data) : null))
+        .catch(() => null);
 
       const itemsTxt = (obs.items ?? [])
         .map((e) => `[${e.i}] ${e.tag}${e.type ? `(${e.type})` : ""} ${e.label}${e.href ? ` → ${e.href}` : ""}${e.sensitiveField ? " ⛔" : ""}`)
         .join("\n");
-      const raw = await freeChat(
+      const mustFinish = n === maxSteps || blockedRepeats >= 2 || deadline - Date.now() < 20_000;
+      const rawP = freeChat(
         "",
         [
           { role: "system", content: SYSTEM },
           {
             role: "user",
-            content: `الهدف: ${input.goal}\nالخطوة ${n} من ${maxSteps}.\nالخطوات السابقة:\n${history.join("\n") || "لا شيء"}\n\n<page_data>\nالرابط: ${obs.u ?? ""}\nالعنوان: ${obs.t ?? ""}\nالنص:\n${obs.x ?? ""}\n\nالعناصر:\n${itemsTxt}\n</page_data>`,
+            content: `الهدف: ${input.goal}\nالخطوة ${n} من ${maxSteps}.${mustFinish ? "\n⚠ هذه آخر فرصة: يجب أن تختار done الآن بأفضل إجابة من المعلومات المتاحة." : ""}\nروابط زرتها (لا تعد إليها): ${[...visited].join(" , ") || "لا شيء"}\nالخطوات السابقة:\n${history.join("\n") || "لا شيء"}\n\n<page_data>\nالرابط: ${obs.u ?? ""}\nالعنوان: ${obs.t ?? ""}\nالنص:\n${obs.x ?? ""}\n\nالعناصر:\n${itemsTxt}\n</page_data>`,
           },
         ],
         { json: true, reasoningEffort: "low", timeoutMs: 25_000 },
       ).catch(() => "");
+      const [raw, screenshotUrl] = await Promise.all([rawP, shotP]);
       const d = parseDecision(raw);
+      if (d && mustFinish && d.action !== "done" && d.action !== "handoff") {
+        d.action = "done";
+        d.answer = d.answer || d.note || "هذا أقصى ما أمكن الوصول إليه.";
+      }
       const step: AgentStep = { n, action: d?.action ?? "error", note: d?.note ?? "", url: obs.u ?? "", title: obs.t ?? "", screenshotUrl };
       steps.push(step);
       if (!d) return finish({ status: "error", answer: "تعذّر على النموذج تحديد الخطوة التالية. حاول بصياغة أوضح للهدف." });
@@ -264,6 +278,13 @@ export async function runBrowserAgent(input: {
       }
 
       if (d.action === "navigate" && d.url && /^https?:\/\//i.test(d.url)) {
+        const target = normUrl(d.url);
+        const baseSeen = [...visited].some((v) => v.split("?")[0] === target.split("?")[0]);
+        if (visited.has(target) || baseSeen) {
+          blockedRepeats++;
+          history.push(`   ⛔ مُنع: الرابط ${d.url} (أو نفس الصفحة) زرته سابقاً — استخدم المعلومات التي لديك.`);
+          continue;
+        }
         await cdp.send("Page.navigate", { url: d.url }, sid);
       } else if (d.action === "back") {
         await evalJs("history.back()");
