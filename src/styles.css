@@ -45960,7 +45960,7 @@ html {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@media (min-width: 640px) and (max-width: 1199px) {
+@media (min-width: 640px) and (max-width: 1599px) {
   .is-chat-shell .app-topbar-inner {
     flex-wrap: wrap;
   }
