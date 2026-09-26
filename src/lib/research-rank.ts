@@ -1,0 +1,334 @@
+/**
+ * ترجيح الأدلة — الفرق بين «جمعنا روابط» و«قدّمنا بحثاً».
+ *
+ * جمع النتائج سهل؛ الصعب هو ألا نضع رأي مدوّنة تسويقية في مرتبة دراسة محكّمة،
+ * وألا نكرر الرابط نفسه بصيغ مختلفة، وأن نميّز ما تطابقت عليه مصادر مستقلة
+ * عمّا قاله مصدر واحد. ثلاث قواعد تحكم الترتيب:
+ *
+ * 1) سلطة المصدر : جهة رسمية أو دراسة محكّمة أعلى من مدوّنة أو منصة إعلانية.
+ * 2) الحداثة     : كل سنة تباعد تخصم؛ والسنة الحالية لا تُخصم إطلاقاً.
+ * 3) التطابق     : ما يظهر عند مصدرين مستقلّين يُرفع ويُعلَّم «مؤكَّد».
+ */
+import type { Finding } from "./open-data.server";
+
+/** سلطة كل مصدر (0–10). الرقم قرار تحريري لا حسابي. */
+const SOURCE_WEIGHT: Record<string, number> = {
+  "البنك الدولي": 10,
+  OpenAlex: 9,
+  Crossref: 9,
+  arXiv: 7,
+  Wikidata: 7,
+  "Exchange Rate API": 8,
+  "Yahoo Finance": 8,
+  "Wayback Machine": 7,
+  OpenStreetMap: 8,
+  "Google Trends": 8,
+  "Google News": 6,
+  "Hacker News": 6,
+  GitHub: 6,
+  "Stack Exchange": 6,
+  DuckDuckGo: 5,
+  ويكيبيديا: 6,
+  SearXNG: 5,
+  "بحث ويب": 5,
+};
+const DEFAULT_WEIGHT = 4;
+
+/** نطاقات معروفة برداءة الإشارة: محتوى مجمَّع أو منتديات سبام أو صفحات تجميع روابط. */
+const LOW_SIGNAL = /(pinterest\.|quora\.com|slideshare|scribd|ezinearticles|blogspot\.|medium\.com\/@)/i;
+/** نطاقات مؤسسية تستحق رفعاً: منظمات ودول وجامعات. */
+const HIGH_SIGNAL = /\.(gov|gov\.[a-z]{2}|edu|int)(\/|$)|\.org\//i;
+/**
+ * صفحات لا تصلح دليلاً أبداً مهما تطابقت ألفاظها: مراكز مساعدة، سياسات، تسجيل
+ * دخول، سلات شراء. وجودها في نتائج بحث عن سعر أو معيار تشويش صافٍ.
+ */
+const NEVER_EVIDENCE =
+  /(support\.google\.com|\/help\/|\/support\/|policies\.|\/privacy|\/terms|\/login|\/signin|\/signup|\/cart|\/checkout|accounts\.google|facebook\.com\/(help|policies)|business\.help)/i;
+/**
+ * نطاقات لا تُقدَّم دليلاً في أي سياق: محتوى للبالغين، حجوزات فنادق، لوحات وظائف،
+ * متاجر مزادات. صفحاتها مليئة بالأرقام فتخدع أي مرشّح رقمي.
+ */
+const BANNED_DOMAIN =
+  /(xhamster|pornhub|xvideos|xnxx|onlyfans|booking\.com|agoda|trivago|tripadvisor\.[a-z]+\/Hotel|indeed\.com|bayt\.com|tanqeeb|wuzzuf|linkedin\.com\/jobs|ebay\.|aliexpress|amazon\.[a-z]+\/dp)/i;
+/** مصادر موسوعية: مقالها عن موضوعنا فقط إن حمل عنوانه موضوعنا. */
+const ENCYCLOPEDIC = new Set(["ويكيبيديا", "Wikidata", "Open Library"]);
+/** أقصى عدد نتائج من نطاق واحد: التنوّع جزء من جودة البحث. */
+const MAX_PER_DOMAIN = 2;
+
+const domainOf = (url: string): string => {
+  try {
+    return new URL(url).host.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return url;
+  }
+};
+
+/** أدوات لغوية خفيفة: توحيد العربية ليُقارن «الإعلانات» بـ«اعلان». */
+const AR_STOP = new Set([
+  "في","من","على","عن","إلى","الى","مع","هذا","هذه","التي","الذي","كيف","ما","ماذا","هل",
+  "أفضل","افضل","أهم","اهم","لكل","بين","كل","the","and","for","with","best","how","what",
+]);
+
+export const normalizeText = (s: string): string =>
+  s
+    .toLowerCase()
+    .replace(/[\u064B-\u0652\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** كلمات الزمن تحدد الحداثة لا الموضوع: «سعر السمك اليوم» لا يصبح دليلاً على «سعر الدولار اليوم». */
+const TIME_WORDS = new Set(["اليوم", "النهارده", "الان", "الآن", "حاليا", "today", "now", "latest", "current"]);
+const MONTHS = [
+  ["يناير", "january"], ["فبراير", "february"], ["مارس", "march"], ["ابريل", "april"], ["مايو", "may"], ["يونيو", "june"],
+  ["يوليو", "july"], ["اغسطس", "august"], ["سبتمبر", "september"], ["اكتوبر", "october"], ["نوفمبر", "november"], ["ديسمبر", "december"],
+];
+/** العنوان يذكر شهراً غير الحالي/السابق ← صفحة قديمة غالباً ولو لم تذكر السنة. */
+export function staleMonth(title: string, now = new Date()): boolean {
+  const t = ` ${normalizeText(title)} `;
+  const cur = now.getMonth();
+  // تاريخ رقمي «1-2-2026» أو «2026-02-01»: الشهر فيه غير الحالي/السابق ← قديم.
+  const d = /(?<!\d)(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})(?!\d)/.exec(title) ?? null;
+  if (d) {
+    const mo = Number(d[2]) - 1;
+    if (mo >= 0 && mo < 12 && mo !== cur && mo !== (cur + 11) % 12) return true;
+  }
+  return MONTHS.some(([ar, en], i) => {
+    if (i === cur || i === (cur + 11) % 12) return false;
+    return t.includes(` ${ar} `) || (en !== "may" && t.includes(` ${en} `));
+  });
+}
+
+export const topicTokens = (topic: string): string[] =>
+  [...new Set(normalizeText(topic).split(" "))].filter(
+    // السنة وحدها ليست موضوعاً: «2026» تظهر في كل صفحة على الإنترنت هذا العام،
+    // فلو عددناها صلة تسلّل إلينا أي شيء.
+    (w) => w.length > 2 && !AR_STOP.has(w) && !TIME_WORDS.has(w) && !/^\d+$/.test(w),
+  );
+
+/**
+ * نسبة كلمات الموضوع الظاهرة في الدليل (0–1).
+ * هذا هو الحارس الذي يمنع «ورقة فيزياء فلكية» أو «رحلة إلى زيورخ» من التسلل
+ * إلى أدلة موضوع عن المطاعم لمجرد أن مصدرها قوي.
+ */
+/**
+ * مطابقة على حدود الكلمة لا على الحروف. المطابقة بالحروف تجعل «مصر» تنطبق على
+ * «المصري» في «المتحف المصري الكبير»، فيتسلل مقال لا علاقة له بالموضوع.
+ * نسمح بلاحقة قصيرة (جمع أو نسبة) ولا نسمح بأكثر.
+ */
+/** نزع أداة التعريف وحروف العطف/الجر الملتصقة بها: «والاقتصاد» و«بالاقتصاد» و«الاقتصاد» = «اقتصاد». */
+const stem = (w: string): string => {
+  const m = /^(وال|بال|فال|كال|لل)/.exec(w);
+  if (m && w.length - m[0].length >= 3) return w.slice(m[0].length);
+  return w.length > 4 && w.startsWith("ال") ? w.slice(2) : w;
+};
+
+const words = (s: string): string[] =>
+  normalizeText(s)
+    .split(" ")
+    .map(stem)
+    .filter(Boolean);
+
+/** أحدث سنة معقولة مذكورة في النص (2000..السنة الحالية)، أو undefined. */
+const SCHOLARLY = /^(arXiv|OpenAlex|Crossref|Europe PMC|Semantic Scholar|PubMed)$/i;
+
+export function inferYear(text: string, now = new Date().getFullYear()): number | undefined {
+  let best: number | undefined;
+  for (const m of text.matchAll(/(?<!\d)(20\d{2})(?!\d)/g)) {
+    const y = Number(m[1]);
+    if (y <= now && (!best || y > best)) best = y;
+  }
+  return best;
+}
+
+export function countMatches(haystack: string, tokens: string[]): number {
+  if (!tokens.length) return 0;
+  const ws = new Set(words(haystack));
+  const list = [...ws];
+  // الكلمة المطلوبة تُجذَّع بنفس قاعدة النص، وإلا لا تطابق «الاقتصاد» أبداً «اقتصاد».
+  return tokens.map((t) => stem(t)).filter(
+    (t) =>
+      ws.has(t) ||
+      // اللاحقة القصيرة تُسامَح للكلمات الطويلة فقط: «اعلانات» و«اعلاناتك» شيء واحد،
+      // أما «مصر» و«مصري» فمعنيان مختلفان ولا يجوز الخلط بينهما.
+      (t.length >= 5 && list.some((w) => w.startsWith(t) && w.length - t.length <= 1)),
+  ).length;
+}
+
+export function relevanceOf(finding: Finding, tokens: string[]): number {
+  if (!tokens.length) return 1;
+  const hit = countMatches(`${finding.title} ${finding.snippet} ${finding.url}`, tokens);
+  return hit / tokens.length;
+}
+
+export type RankedFinding = Finding & {
+  score: number;
+  /** ظهر المعنى نفسه في أكثر من مصدر مستقل. */
+  corroborated: boolean;
+};
+
+const normalizeUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    return `${u.host.replace(/^www\./, "")}${u.pathname.replace(/\/$/, "")}`.toLowerCase();
+  } catch {
+    return url.toLowerCase();
+  }
+};
+
+/** بصمة دلالية خشنة للعنوان: تكشف نفس الخبر بصياغتين. */
+const fingerprint = (title: string): string =>
+  title
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 3)
+    .slice(0, 6)
+    .sort()
+    .join(" ");
+
+/**
+ * يرتّب الأدلة ويحذف المكرر ويعلّم المتطابق عليه.
+ * لا يحذف مصدراً ضعيفاً بالكامل: يضعه في ذيل القائمة حيث يستحق.
+ */
+function rankPass(
+  findings: Finding[],
+  opts: { topic?: string; aux?: string; max?: number; alt?: string; fresh?: boolean; live?: boolean } = {},
+  /** تمرير متساهل: يُستخدم فقط حين يعود التشديد بحصيلة شبه فارغة. */
+  relax = false,
+): RankedFinding[] {
+  const max = opts.max ?? 14;
+  /** كلمات الموضوع نفسه: لا يُقبل دليل لا يلمس واحدة منها على الأقل. */
+  const coreMain = topicTokens(opts.topic ?? "");
+  /** صياغة الموضوع بلغة أخرى (غالباً الإنجليزية): صفحة إنجليزية تُقاس بها لا بالعربي. */
+  const coreAlt = topicTokens(opts.alt ?? "").filter((t) => !coreMain.includes(t));
+  /** كلمات السياق (القطاع، المدينة): ترفع الترتيب ولا تكفي وحدها للقبول. */
+  const aux = topicTokens(opts.aux ?? "").filter((t) => !coreMain.includes(t) && !coreAlt.includes(t));
+  const year = new Date().getFullYear();
+  const byUrl = new Map<string, RankedFinding>();
+  const prints = new Map<string, Set<string>>();
+
+  const hits = (f: Finding, list: string[]) =>
+    countMatches(`${f.title} ${f.snippet} ${f.url}`, list);
+  const titleHits = (f: Finding, list: string[]) => countMatches(f.title, list);
+
+  for (const f of findings) {
+    if (!f.title || !f.url) continue;
+    if (BANNED_DOMAIN.test(f.url)) continue;
+    if (f.kind !== "context" && NEVER_EVIDENCE.test(f.url)) continue;
+    const weight = SOURCE_WEIGHT[f.source] ?? DEFAULT_WEIGHT;
+    // نقيس الدليل بلغته: أفضل تغطية بين صياغة الموضوع العربية والأجنبية.
+    const mainCov = coreMain.length ? hits(f, coreMain) / coreMain.length : 0;
+    const altCov = coreAlt.length ? hits(f, coreAlt) / coreAlt.length : 0;
+    const core = altCov > mainCov ? coreAlt : coreMain;
+    const coreHit = hits(f, core);
+
+    // الخلفية العامة لا تخضع لفحص الصلة لأنها لا تُقدَّم كدليل على الموضوع.
+    if (f.kind !== "context" && core.length) {
+      // (1) لا بد من لمس كلمة من الموضوع نفسه — القطاع وحده لا يصنع صلة.
+      if (coreHit < 1) continue;
+      // (2) موضوع متعدد الكلمات يحتاج تقاطعين، وإلا فهي مصادفة لفظية.
+      if (!relax && core.length >= 3 && coreHit + hits(f, aux) < 2) continue;
+      // (3) المصادر متوسطة السلطة (مدونات، نتائج عامة) يجب أن يظهر الموضوع في عنوانها،
+      //     وإلا فهي صفحة عن شيء آخر ورد فيه لفظنا عرَضاً.
+      // تبقى سارية حتى في التمرير المتساهل: التساهل يوسّع الصلة ولا يلغيها.
+      if (weight <= 5 && titleHits(f, [...core, ...aux]) < 1) continue;
+      // سؤال لحظي من مصدر متوسط: العنوان يحمل الموضوع كله تقريباً (ينقصه كلمة على الأكثر).
+      if (opts.live && weight <= 5 && core.length >= 3 && titleHits(f, core) < Math.min(3, Math.ceil(core.length * 0.66))) continue;
+      // (4) مقال موسوعي لا يكون دليلاً إلا إن كان **عنوانه** عن موضوعنا؛
+      //     ورود اللفظ داخل مقال عن شيء آخر مصادفة لا دليل.
+      //     موضوع متعدد الكلمات: العنوان يغطي نصفه على الأقل — «تصميم مواقع الويب»
+      //     ليست دليلاً على «اتجاهات تصميم الشعارات». ويكيبيديا عبر بحث الويب تُعامل بالمثل.
+      const ency = ENCYCLOPEDIC.has(f.source) || /(^|\.)wikipedia\.org/i.test(domainOf(f.url));
+      if (ency && titleHits(f, core) < Math.max(1, Math.ceil(core.length / 2))) continue;
+      // (5) ورقة بحثية دليل فقط إن كان عنوانها يغطي معظم الموضوع؛ «Quantum-Well Perovskites»
+      //     ليست شرحاً لـ«الحوسبة الكمومية». التمرير المتساهل يعيدها إن شحّت الأدلة.
+      if (SCHOLARLY.test(f.source) && core.length >= 2 && titleHits(f, core) < Math.ceil(core.length * 0.75)) continue;
+    }
+    const key = normalizeUrl(f.url);
+
+    // السلطة لا تُمنح كاملة إلا لمن غطّى الموضوع: دراسة محكّمة تلامس ثلث الموضوع
+    // لا تسبق صفحة تتناوله بالكامل. التغطية تضرب السلطة ولا تُجمع إليها فقط.
+    const coverage = core.length ? coreHit / core.length : 1;
+    let score = weight * (0.3 + 0.7 * coverage);
+    score += coverage * 3;
+    score += aux.length ? (hits(f, aux) / aux.length) * 1.5 : 0;
+    score += titleHits(f, core) > 0 ? 1.5 : 0;
+    // نتائج الويب لا تحمل سنة: نستنتجها من أحدث سنة مذكورة في العنوان/المقتطف.
+    const seenYear = f.year ?? inferYear(`${f.title} ${f.snippet}`, year);
+    if (seenYear) {
+      const age = Math.max(0, year - seenYear);
+      // في الأسئلة اللحظية («اليوم»، «2026») صفحة 2021 أو 2024 تكاد تكون خطأ لا دليلاً.
+      score -= opts.fresh ? Math.min(9, age * 3) : Math.min(4, age * 0.8);
+    }
+    if (opts.fresh && !(seenYear && seenYear < year) && staleMonth(f.title)) score -= 5;
+    if (HIGH_SIGNAL.test(f.url)) score += 2;
+    if (LOW_SIGNAL.test(f.url)) score -= 3;
+    if (f.snippet.length > 60) score += 0.5;
+
+    const print = fingerprint(f.title);
+    if (print) {
+      const seen = prints.get(print) ?? new Set<string>();
+      seen.add(f.source);
+      prints.set(print, seen);
+    }
+
+    const prior = byUrl.get(key);
+    if (!prior || score > prior.score) {
+      byUrl.set(key, { ...f, score, corroborated: false });
+    }
+  }
+
+  const rows = [...byUrl.values()].map((r) => {
+    const sources = prints.get(fingerprint(r.title));
+    const corroborated = (sources?.size ?? 0) > 1;
+    return { ...r, corroborated, score: corroborated ? r.score + 2.5 : r.score };
+  });
+
+  // تنويع النطاقات: موقع واحد لا يحتكر القائمة ولو كانت كل صفحاته قوية —
+  // ثلاثة مصادر مستقلة أصدق من ثلاث صفحات لمصدر واحد.
+  const perDomain = new Map<string, number>();
+  const diverse: RankedFinding[] = [];
+  const overflow: RankedFinding[] = [];
+  for (const r of rows.sort((a, b) => b.score - a.score)) {
+    const d = domainOf(r.url);
+    const n = perDomain.get(d) ?? 0;
+    if (n >= MAX_PER_DOMAIN) {
+      overflow.push(r);
+      continue;
+    }
+    perDomain.set(d, n + 1);
+    diverse.push(r);
+  }
+  return [...diverse, ...overflow].slice(0, max);
+}
+
+/**
+ * الترتيب المعتمد: تشديد أولاً، فإن عادت الحصيلة شبه فارغة نعيد الكرّة بتساهل.
+ * السبب: التشديد يحمي من التشويش، لكن موضوعاً نادراً قد لا يجد ثلاثة مصادر
+ * تحمل لفظه في العنوان — وتسليم «لا شيء» أسوأ من تسليم أدلة أضعف مع ترتيب صادق.
+ */
+export function rankFindings(
+  findings: Finding[],
+  opts: { topic?: string; aux?: string; max?: number; alt?: string; fresh?: boolean; live?: boolean } = {},
+): RankedFinding[] {
+  const strict = rankPass(findings, opts, false);
+  const evidence = strict.filter((r) => r.kind !== "context").length;
+  if (evidence >= 4) return strict;
+  const relaxed = rankPass(findings, opts, true);
+  return relaxed.length > strict.length ? relaxed : strict;
+}
+
+/** يعرض الأدلة المرتّبة بصيغة يقرأها النموذج ويستشهد بها بدقة. */
+export function renderRanked(title: string, rows: RankedFinding[]): string {
+  if (!rows.length) return "";
+  const lines = rows.map((r) => {
+    const tag = r.corroborated ? " ✅ مؤكَّد من مصدرين" : "";
+    const yr = r.year ? ` (${r.year})` : "";
+    return `- **${r.title}**${yr} — ${r.source}${tag}\n  ${r.snippet}\n  ${r.url}`;
+  });
+  return `### ${title}\n${lines.join("\n")}`;
+}

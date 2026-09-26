@@ -1,0 +1,1 @@
+ALTER PUBLICATION supabase_realtime ADD TABLE public.messages, public.conversations, public.tasks, public.integrations, public.proposals, public.decisions, public.brain_items, public.automations;
