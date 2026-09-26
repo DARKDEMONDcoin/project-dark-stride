@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION private.app_base_url() RETURNS text LANGUAGE sql IMMUTABLE SET search_path TO 'private','public' AS $$ select 'https://project--d8e14fee-9361-4ef4-82fe-95ac8feb2d32.lovable.app' $$;
