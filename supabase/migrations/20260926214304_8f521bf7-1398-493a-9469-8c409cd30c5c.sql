@@ -1,0 +1,1 @@
+CREATE POLICY "Service role manages telegram onboarding" ON public.telegram_onboarding FOR ALL TO service_role USING (true) WITH CHECK (true);
