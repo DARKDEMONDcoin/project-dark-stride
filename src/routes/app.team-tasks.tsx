@@ -87,7 +87,7 @@ function TeamTasksPage() {
 
         {tasks.isLoading ? <Loader2 className="mx-auto size-5 animate-spin" /> : null}
         {(tasks.data ?? []).map((t) => {
-          const st = STATUS[t.status] ?? STATUS.running!;
+          const st = STATUS[t.status] ?? STATUS["running"]!;
           const steps = [...t.team_task_steps].sort((a, b) => a.position - b.position);
           return (
             <article key={t.id} className="space-y-3 rounded-2xl border border-border bg-card p-5">
@@ -110,7 +110,7 @@ function TeamTasksPage() {
                       {s.output ? (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-xs text-primary">عرض مخرج {e?.name}</summary>
-                          <div className="mt-2"><Markdown>{s.output}</Markdown></div>
+                          <div className="mt-2"><Markdown body={s.output} /></div>
                         </details>
                       ) : null}
                     </li>
@@ -120,7 +120,7 @@ function TeamTasksPage() {
               {t.final_output ? (
                 <div className="rounded-xl border border-border p-4">
                   <div className="mb-2 text-sm font-semibold">التسليم النهائي</div>
-                  <Markdown>{t.final_output}</Markdown>
+                  <Markdown body={t.final_output} />
                 </div>
               ) : null}
               {t.status === "awaiting_approval" ? (
