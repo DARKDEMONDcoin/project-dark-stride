@@ -62,6 +62,6 @@ function ChatIndex() {
           );
         })}
       </div>
-    </AppShell>
+    </>
   );
 }
