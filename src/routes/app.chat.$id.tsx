@@ -1355,6 +1355,9 @@ function ChatView({
                           const req = isUser ? splitUserBody(m.body).text || m.body : priorRequest;
                           const handoff = detectHandoff(req, id);
                           if (!handoff) return null;
+                          // الطلب حُوِّل تلقائياً ونُفّذ داخل نفس المحادثة: لا حاجة لزر التوجّه.
+                          if (!isUser && m.body.includes("تولّى طلبك تلقائياً")) return null;
+                          if (isUser && arr[idx + 1]?.body?.includes("تولّى طلبك تلقائياً")) return null;
                           // تظهر مرة واحدة: مع رسالة المستخدم مباشرة إن كانت آخر رسالة،
                           // أو تحت رد الموظف بعدها.
                           const nextIsAssistant = arr[idx + 1] && arr[idx + 1]!.role !== "user";
