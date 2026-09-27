@@ -155,6 +155,10 @@ const FORM_ACTION_RE =
  * طلبات النماذج لا تعتمد على التزام النموذج ببنية JSON: ما دام هناك رابط وقيم
  * واضحة، نُنشئ بطاقة المتصفح الحتمية. التنفيذ نفسه يظل متوقفاً على اعتماد المالك.
  */
+/** طلبات تحتاج تنقلاً حقيقياً بين مواقع: حجز، شراء، مقارنة عروض وأسعار حيّة. */
+const BROWSE_TASK_RE =
+  /(احجز|احجزلي|حجز\s+(?:فندق|طيران|تذكر|رحلة|موعد)|تذكرة|تذاكر|اشتري|اشتريلي|أشتري|اطلب\s+لي|قارن\s+(?:أسعار|الأسعار|عروض|العروض)|أرخص|ارخص|\bbook\b|\bbuy\b|cheapest|compare prices)/i;
+
 function browserActionValues(message: string, urls: string[]): Record<string, string> | null {
   if (!urls.length || !FORM_ACTION_RE.test(message)) return null;
   const withoutUrl = message.replace(/https?:\/\/[^\s)»"'<>]+/gi, " ");
@@ -1174,6 +1178,18 @@ export async function runEmployeeTurn(
         pendingAction = { ...def, values };
         deliverables = [];
         reply = "جهّزت بيانات النموذج. راجع معاينة الصفحة والقيم، ثم اعتمد التنفيذ إن كانت صحيحة.";
+      }
+    }
+
+    // ضمان حتمي لطلبات الحجز/الشراء/مقارنة العروض: بطاقة رحلة تصفح متعددة الخطوات
+    // داخل الشات، تنطلق فور «اعتمد ونفّذ» وتتوقف قبل الدفع لتأكيد المالك.
+    if (!pendingAction && intent === "work" && BROWSE_TASK_RE.test(data.message)) {
+      const def = allowedActions.find((a) => a.id === "team-browser-task");
+      if (def) {
+        pendingAction = {
+          ...def,
+          values: { goal: data.message.slice(0, 1500), startUrl: msgUrls[0] ?? "" },
+        };
       }
     }
 

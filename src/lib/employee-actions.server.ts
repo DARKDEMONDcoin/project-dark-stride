@@ -884,7 +884,24 @@ const browserAction: EmployeeActionDef = {
   ],
 };
 
-const allActions: EmployeeActionDef[] = [...employeeActions, ...extraEmployeeActions, browserAction];
+/** رحلة تصفح متعددة الخطوات (بحث، مقارنة، تجهيز حجز/شراء حتى صفحة الدفع) من داخل الشات. */
+const browserTaskAction: EmployeeActionDef = {
+  id: "team-browser-task",
+  employeeId: "*",
+  provider: "browser",
+  label: "رحلة تصفح متعددة الخطوات (بحث، مقارنة، تجهيز حجز أو شراء)",
+  inputs: [
+    { name: "goal", label: "المهمة المطلوبة بالتفصيل", required: true },
+    { name: "startUrl", label: "موقع البداية (اختياري)" },
+  ],
+};
+
+const allActions: EmployeeActionDef[] = [
+  ...employeeActions,
+  ...extraEmployeeActions,
+  browserAction,
+  browserTaskAction,
+];
 
 export function actionsFor(employeeId: string): EmployeeActionDef[] {
   // الإجراءات المشتركة تظهر فقط لمنصات هذا الموظف — لا يرى سِراج أدوات سلاك/جيرا الخاصة بأمَل.
@@ -972,6 +989,17 @@ async function runEmployeeActionInner(
     .filter((i) => i.required && !params.values[i.name]?.trim())
     .map((i) => i.label);
   if (missing.length) throw new Error(`حقول ناقصة: ${missing.join("، ")}`);
+
+  if (def.id === "team-browser-task") {
+    const { runBrowserAgent } = await import("./browser-agent.server");
+    const startUrl = (params.values["startUrl"] ?? "").trim();
+    const r = await runBrowserAgent({
+      goal: params.values["goal"]!.trim().slice(0, 1500),
+      startUrl: /^https?:\/\//i.test(startUrl) ? startUrl : undefined,
+      maxSteps: 12,
+    });
+    return { actionId: def.id, provider: def.provider, result: { kind: "browser-task", ...r } };
+  }
 
   if (def.provider === "browser") {
     const { fillForm } = await import("./cloud-browser.server");
