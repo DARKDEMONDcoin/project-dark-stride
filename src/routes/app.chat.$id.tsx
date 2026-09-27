@@ -1094,12 +1094,9 @@ function ChatView({
   };
 
   return (
-    <AppShell
-      title={member.name}
-      lead={member.role}
-      padded={false}
-      compactTitle
-      actions={
+    <>
+      <ChatShellMeta title={member.name} lead={member.role} padded={false} compactTitle />
+      <ChatShellActions>
         <div className="chat-topbar-actions no-scrollbar flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto sm:gap-1.5">
           <span
             className="chat-presence"
