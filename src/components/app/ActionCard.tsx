@@ -72,7 +72,7 @@ export function ActionCard({
       if (res && typeof res === "object" && "result" in res && res.result && typeof res.result === "object") {
         setOutcome(res.result as typeof outcome);
       }
-      onDone?.();
+      // تبقى البطاقة ظاهرة بنتيجة التنفيذ؛ الإغلاق فقط بزر «لاحقاً».
     },
     onError: (e: unknown) => setError(e instanceof Error ? e.message : "تعذّر تنفيذ الإجراء."),
   });

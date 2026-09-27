@@ -12,6 +12,8 @@ export async function smartHandoff(message: string, currentId: string): Promise<
   const text = (message || "").trim();
   const byWords = detectHandoff(text, currentId);
   if (byWords) return byWords;
+  // الكلمات تشير للموظف الحالي نفسه = طلب من اختصاصه، لا حاجة للمصنّف.
+  if (detectHandoff(text, "__none__")?.id === currentId) return null;
   if (text.length < 15 || text.length > 1500 || isDecisivelyMine(text, currentId)) return null;
   try {
     const { freeChat } = await import("./nour-research.server");

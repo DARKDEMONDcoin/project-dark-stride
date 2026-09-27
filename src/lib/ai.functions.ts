@@ -802,6 +802,9 @@ export async function runEmployeeTurn(
       }),
       expertMindBlock(agentId, intent),
       intent !== "smalltalk" ? toolbeltBlock(agentId) : "",
+      routed
+        ? `## الطلب حُوِّل إليك تلقائياً\nأنت المختص بهذا الطلب وقد حوّله النظام إليك داخل محادثة ${homePersona.name}. نفّذه أنت بالكامل الآن، ولا تحوّله لأي زميل ولا تطلب من المستخدم الضغط على زر توجيه.`
+        : "",
       // كتل التميّز تُحقن للعمل وللأسئلة الاستشارية معاً (كما في مسار المهام التلقائية)،
       // وتُستثنى الدردشة وحدها. قبلها كان السؤال الاستشاري يخسر عمقاً تحصل عليه الأتمتة.
       intent !== "smalltalk" ? employeeEdgeBlock(agentId) : "",
