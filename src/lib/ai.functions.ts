@@ -495,6 +495,7 @@ export async function runEmployeeTurn(
     const streaming = emit !== noEmit && intent === "work";
     // عقل الخبير: عمق التخصص + سؤال واحد بخيارات عند الغموض الجوهري فقط.
     const { expertMindBlock } = await import("./expert-mind");
+    const { toolbeltBlock } = await import("./employee-toolbelt");
 
     // الوعي اللحظي: الزمن الدقيق دائماً + بحث حيّ عن الأحداث الجارية عند الحاجة.
     const { nowBlock, needsLiveFacts, liveFactsBlock, timezoneForCountry } =
@@ -800,6 +801,7 @@ export async function runEmployeeTurn(
         teamActivity,
       }),
       expertMindBlock(agentId, intent),
+      intent !== "smalltalk" ? toolbeltBlock(agentId) : "",
       // كتل التميّز تُحقن للعمل وللأسئلة الاستشارية معاً (كما في مسار المهام التلقائية)،
       // وتُستثنى الدردشة وحدها. قبلها كان السؤال الاستشاري يخسر عمقاً تحصل عليه الأتمتة.
       intent !== "smalltalk" ? employeeEdgeBlock(agentId) : "",
