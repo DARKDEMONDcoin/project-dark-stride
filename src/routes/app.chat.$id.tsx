@@ -2014,6 +2014,6 @@ function ChatView({
           </>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }
