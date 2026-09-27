@@ -305,8 +305,8 @@ export async function runEmployeeTurn(
     const apiKey = "";
 
     const supabase = context.supabase;
-    const persona = personas[data.employeeId];
-    if (!persona) throw new Error("موظف غير معروف.");
+    const homePersona = personas[data.employeeId];
+    if (!homePersona) throw new Error("موظف غير معروف.");
 
     const [
       { data: workspace },
@@ -474,6 +474,15 @@ export async function runEmployeeTurn(
     const { chatIntent, intentBlock, wantsImageRequest, refusesImageRequest } =
       await import("./chat-intent");
     const intent = chatIntent(data.message);
+    // توجيه ذكي تلقائي: طلب عمل خارج اختصاص موظف المحادثة يتولاه الزميل المختص
+    // خلف الكواليس (تعليماته وأدواته وإجراءاته)، وتعود النتيجة في نفس المحادثة.
+    const routed =
+      intent === "work"
+        ? await (await import("./smart-route.server")).smartHandoff(data.message, data.employeeId)
+        : null;
+    const agentId: string = routed?.id ?? data.employeeId;
+    const persona = personas[agentId] ?? homePersona;
+    if (routed) emit({ type: "step", label: `حوّلت طلبك تلقائياً إلى ${routed.name} — ${routed.topic}` });
     /** رفض صريح للصورة: «بدون صورة» يمنع أي توليد مهما كان الموظف أو المخرج. */
     const imageRefused = refusesImageRequest(data.message);
     /** طلب صورة صريح من المستخدم: تُولَّد صورة فعلية أياً كان الموظف. */
@@ -509,7 +518,7 @@ export async function runEmployeeTurn(
     emit({ type: "step", label: `أجمع أدلة وأرقاماً حقيقية عن «${turnTopic}»` });
     const [research, liveBlock, ownFieldResearch] = await Promise.all([
       researchFor(
-        data.employeeId,
+        agentId,
         apiKey,
         { name: workspace.name, industry: workspace.industry },
         data.message,
@@ -537,13 +546,13 @@ export async function runEmployeeTurn(
             // يُشغَّل حين يطلبه المستخدم صراحةً أو حين يكون المطلوب تقريراً/دراسة.
             if (DEEP_RESEARCH_RE.test(data.message)) {
               const m = await import("./deep-research.server");
-              return m.deepResearch(data.employeeId, wantsResearch.topic, {
+              return m.deepResearch(agentId, wantsResearch.topic, {
                 ...opts,
                 deepBudgetMs: 35_000,
               });
             }
             const m = await import("./employee-research.server");
-            return m.employeeResearch(data.employeeId, wantsResearch.topic, opts);
+            return m.employeeResearch(agentId, wantsResearch.topic, opts);
           })().catch(() => ({ block: "", used: [] as string[] }))
         : Promise.resolve({ block: "", used: [] as string[] }),
     ]);
@@ -581,7 +590,7 @@ export async function runEmployeeTurn(
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       toolBlocks = await runChatTools(supabaseAdmin, {
         workspaceId: data.workspaceId,
-        employeeId: data.employeeId,
+        employeeId: agentId,
         message: data.message,
         website: ws.website,
         country: ws.country,
@@ -655,7 +664,7 @@ export async function runEmployeeTurn(
     }[] = [];
     try {
       const { actionsFor } = await import("./employee-actions.server");
-      allowedActions = actionsFor(data.employeeId)
+      allowedActions = actionsFor(agentId)
         // المتصفح أداة منصة مشتركة بمفاتيح خادمية، وليس تكاملاً يربطه المستخدم.
         .filter((a) => a.provider === "browser" || connected.includes(a.provider))
         .map((a) => ({ id: a.id, provider: a.provider, label: a.label, inputs: a.inputs }));
@@ -711,14 +720,14 @@ export async function runEmployeeTurn(
         .from("messages")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", data.workspaceId)
-        .eq("employee_id", data.employeeId)
+        .eq("employee_id", agentId)
         .eq("role", "assistant");
       firstEverTurn = (priorCount ?? 0) === 0;
     }
 
     // ذاكرة سِراج التشغيلية: صوت العلامة + قواعد مستخلصة من أداء الحساب + المجدول القادم.
     let sirajMemory = "";
-    if (data.employeeId === "sonny") {
+    if (agentId === "sonny") {
       try {
         const { sirajContext } = await import("./siraj-context.server");
         sirajMemory = await sirajContext(supabase as never, data.workspaceId);
@@ -738,7 +747,7 @@ export async function runEmployeeTurn(
     }
 
     let nourMemory = "";
-    if (data.employeeId === "nour") {
+    if (agentId === "nour") {
       try {
         const { nourContext } = await import("./nour-context.server");
         nourMemory = await nourContext(supabase as never, data.workspaceId);
@@ -749,10 +758,10 @@ export async function runEmployeeTurn(
 
     // الذاكرة التشغيلية لبقية الفريق (أمَل، سالم، دانة، آدم): أرقام أدائهم الحقيقية وأمثلتهم المعتمدة.
     let genericMemory = "";
-    if (!["sonny", "nour"].includes(data.employeeId)) {
+    if (!["sonny", "nour"].includes(agentId)) {
       try {
         const { opsMemory } = await import("./ops-memory.server");
-        genericMemory = await opsMemory(supabase as never, data.workspaceId, data.employeeId);
+        genericMemory = await opsMemory(supabase as never, data.workspaceId, agentId);
       } catch (error) {
         console.error("[ops-memory] context failed:", error);
       }
@@ -761,7 +770,7 @@ export async function runEmployeeTurn(
     let learning = { block: "", lessonIds: [] as string[] };
     try {
       const { learningBlock } = await import("./learning.server");
-      learning = await learningBlock(supabase as never, data.workspaceId, data.employeeId);
+      learning = await learningBlock(supabase as never, data.workspaceId, agentId);
     } catch (error) {
       console.warn("[learning] context skipped:", error instanceof Error ? error.message : error);
     }
@@ -770,13 +779,13 @@ export async function runEmployeeTurn(
       `أنت ${persona.name}، ${persona.role}`,
       `تعمل داخل منصة «سهل» لصالح العلامة المسجلة في المرجع الموحّد أدناه.`,
       // الحاكمان أولاً: سلّم السلطة ثم الالتزام القانوني — كل ما بعدهما محكوم بهما.
-      ...governanceBlocks(data.employeeId),
+      ...governanceBlocks(agentId),
       nowBlock(timezone, ws.country),
       intentBlock(intent),
-      answerPolicyBlock(data.employeeId, intent),
-      reasoningDepthBlock(data.employeeId as EmployeeId, intent),
+      answerPolicyBlock(agentId, intent),
+      reasoningDepthBlock(agentId as EmployeeId, intent),
       coworkerVoiceBlock({
-        employeeId: data.employeeId,
+        employeeId: agentId,
         firstEver: firstEverTurn,
         employeeName: persona.name,
         role: persona.role,
@@ -786,36 +795,38 @@ export async function runEmployeeTurn(
         firstMessage: (history ?? []).length === 0,
         teamActivity,
       }),
-      expertMindBlock(data.employeeId, intent),
+      expertMindBlock(agentId, intent),
       // كتل التميّز تُحقن للعمل وللأسئلة الاستشارية معاً (كما في مسار المهام التلقائية)،
       // وتُستثنى الدردشة وحدها. قبلها كان السؤال الاستشاري يخسر عمقاً تحصل عليه الأتمتة.
-      intent !== "smalltalk" ? employeeEdgeBlock(data.employeeId) : "",
+      intent !== "smalltalk" ? employeeEdgeBlock(agentId) : "",
       // ملف الحِرفة والدليل الميداني ثقيلان ويتعارضان مع أمر «رد قصير بلا بنية»
       // في الدردشة، فلا يُحقنان في التحيات والمجاملات.
-      intent !== "smalltalk" && craft[data.employeeId]
-        ? `## معايير حِرفتك\n${craft[data.employeeId]}`
+      intent !== "smalltalk" && craft[agentId]
+        ? `## معايير حِرفتك\n${craft[agentId]}`
         : "",
       // معايير الصناعة ودليل التشغيل مكتوبان لمخرجات العمل (خطة نشر، هيكل مقال).
       // حقنهما في سؤال معرفي يناقض أمر «أجب في ثلاثة أسطر بلا مخرج عمل».
-      intent === "work" ? frontierEdgeBlock(data.employeeId as EmployeeId) : "",
-      intent === "work" ? playbookFor(data.employeeId, data.message) : "",
+      intent === "work" ? frontierEdgeBlock(agentId as EmployeeId) : "",
+      intent === "work" ? playbookFor(agentId, data.message) : "",
       scopeBoundaryBlock(
-        data.employeeId,
+        agentId,
         data.message,
         intent === "smalltalk"
           ? undefined
-          : await (await import("./smart-route.server")).smartHandoff(data.message, data.employeeId),
+          : intent === "work"
+            ? null
+            : await (await import("./smart-route.server")).smartHandoff(data.message, agentId),
       ),
       sirajMemory,
       nourMemory,
       genericMemory,
       decisionsMemory,
       learning.block,
-      qualityCriteria[data.employeeId]?.length
-        ? `## معايير قبول الرد (راجعها بنداً بنداً قبل أن تكتب، ثم مرة أخيرة قبل التسليم)\n${(qualityCriteria[data.employeeId] ?? []).map((criterion, index) => `${index + 1}) ${criterion}`).join("\n")}`
+      qualityCriteria[agentId]?.length
+        ? `## معايير قبول الرد (راجعها بنداً بنداً قبل أن تكتب، ثم مرة أخيرة قبل التسليم)\n${(qualityCriteria[agentId] ?? []).map((criterion, index) => `${index + 1}) ${criterion}`).join("\n")}`
         : "",
       ...sharedSystemBlocks({
-        employeeId: data.employeeId,
+        employeeId: agentId,
         connected,
         profile: ws.profile,
         website: ws.website,
@@ -863,7 +874,7 @@ export async function runEmployeeTurn(
       // بنية سِراج ونور صارت في reply-structure.ts مع بقية الفريق (مصدر واحد
       // يستخدمه مسار المحادثة ومسار المهام التلقائية معاً). لا تُحقن خارج طلبات العمل:
       // في الدردشة والأسئلة تمنع سياسة الرد العناوين و«الخطوة التالية»، فحقنها تناقض صريح.
-      intent === "work" ? replyStructureBlock(data.employeeId) : "",
+      intent === "work" ? replyStructureBlock(agentId) : "",
 
       intent === "work"
         ? "افترض ما ينقص افتراضاً مهنياً ونفّذ فوراً؛ لا تسأل أكثر من سؤال واحد وواضح، ولا تؤجّل المخرج بسبب معلومة ناقصة — اذكر افتراضك في سطر واحد وأكمل."
@@ -1102,7 +1113,7 @@ export async function runEmployeeTurn(
         .find((n) => n && typeof n === "object" && typeof n.provider === "string");
       // لا نعرض زر ربط لحساب مربوط فعلاً أو لمنصة لا تخص هذا الموظف.
       if (nc && !connected.includes(nc.provider)) {
-        const allowed = employeeDirectory[data.employeeId as EmployeeId]?.integrations.some(
+        const allowed = employeeDirectory[agentId as EmployeeId]?.integrations.some(
           (i) => i.provider === nc.provider,
         );
         if (allowed)
@@ -1346,10 +1357,10 @@ export async function runEmployeeTurn(
       : import("./quality-judge.server")
           .then(({ judgeAndImprove }) =>
             judgeAndImprove({
-              employeeId: data.employeeId,
+              employeeId: agentId,
               request: data.message,
               output: reply,
-              criteria: qualityCriteria[data.employeeId] ?? [],
+              criteria: qualityCriteria[agentId] ?? [],
               bannedWords: workspace.banned_words ?? [],
             }),
           )
@@ -1381,7 +1392,7 @@ export async function runEmployeeTurn(
               d.body.length > 60 &&
               auditOutput({
                 text: d.body,
-                employeeId: data.employeeId,
+                employeeId: agentId,
                 request: data.message,
                 bannedWords: workspace.banned_words ?? [],
               }).penalty > 0,
@@ -1391,10 +1402,10 @@ export async function runEmployeeTurn(
         const fixes = await Promise.all(
           weak.map((d) =>
             judgeAndImprove({
-              employeeId: data.employeeId,
+              employeeId: agentId,
               request: data.message,
               output: d.body,
-              criteria: qualityCriteria[data.employeeId] ?? [],
+              criteria: qualityCriteria[agentId] ?? [],
               bannedWords: workspace.banned_words ?? [],
             }).catch(() => null),
           ),
@@ -1454,7 +1465,7 @@ export async function runEmployeeTurn(
     // عدة مخرجات: كل مخرج مستقل — نوجّه المستخدم إليها بدل محرّر واحد.
     if (deliverables.length > 1) {
       // «منشورات» كلمة سِراج وحده: ردود سام وإيفا تحمل قناة أيضاً وكانت تُوصف خطأً بأنها منشورات.
-      const allPosts = data.employeeId === "sonny" && deliverables.every((d) => Boolean(d.channel));
+      const allPosts = agentId === "sonny" && deliverables.every((d) => Boolean(d.channel));
       // تسمية المخرجات بنوعها الحقيقي: رسائل بريد لا تُسمّى «منشورات».
       const kinds = new Set(deliverables.map((d) => (d.kind ?? "").trim()).filter(Boolean));
       const oneKind = kinds.size === 1 ? [...kinds][0]! : "";
@@ -1555,7 +1566,7 @@ export async function runEmployeeTurn(
             .then(async ({ extractDecisions, recordDecisions }) =>
               recordDecisions(supabase as never, {
                 workspaceId: data.workspaceId,
-                employeeId: data.employeeId,
+                employeeId: agentId,
                 conversationId: data.conversationId,
                 drafts: await extractDecisions(data.message, reply),
               }),
