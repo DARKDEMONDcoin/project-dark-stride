@@ -39,6 +39,7 @@ import { Route as AppAutopilotRouteImport } from './routes/app.autopilot'
 import { Route as AppBrainRouteImport } from './routes/app.brain'
 import { Route as AppBrowserRouteImport } from './routes/app.browser'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
+import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppDecisionsRouteImport } from './routes/app.decisions'
 import { Route as AppDesignEditorRouteImport } from './routes/app.design-editor'
 import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
@@ -227,6 +228,11 @@ const AppCalendarRoute = AppCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppChatRoute = AppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDecisionsRoute = AppDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
@@ -392,14 +398,14 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppChatIndexRoute = AppChatIndexRouteImport.update({
-  id: '/chat/',
-  path: '/chat/',
-  getParentRoute: () => AppRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppChatRoute,
 } as any)
 const AppChatIdRoute = AppChatIdRouteImport.update({
-  id: '/chat/$id',
-  path: '/chat/$id',
-  getParentRoute: () => AppRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppChatRoute,
 } as any)
 const ApiPublicMetaCallbackRoute = ApiPublicMetaCallbackRouteImport.update({
   id: '/api/public/meta/callback',
@@ -449,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/app/brain': typeof AppBrainRoute
   '/app/browser': typeof AppBrowserRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/chat': typeof AppChatRouteWithChildren
   '/app/decisions': typeof AppDecisionsRoute
   '/app/design-editor': typeof AppDesignEditorRoute
   '/app/discovery': typeof AppDiscoveryRoute
@@ -587,6 +594,7 @@ export interface FileRoutesById {
   '/app/brain': typeof AppBrainRoute
   '/app/browser': typeof AppBrowserRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/chat': typeof AppChatRouteWithChildren
   '/app/decisions': typeof AppDecisionsRoute
   '/app/design-editor': typeof AppDesignEditorRoute
   '/app/discovery': typeof AppDiscoveryRoute
@@ -658,6 +666,7 @@ export interface FileRouteTypes {
     | '/app/brain'
     | '/app/browser'
     | '/app/calendar'
+    | '/app/chat'
     | '/app/decisions'
     | '/app/design-editor'
     | '/app/discovery'
@@ -795,6 +804,7 @@ export interface FileRouteTypes {
     | '/app/brain'
     | '/app/browser'
     | '/app/calendar'
+    | '/app/chat'
     | '/app/decisions'
     | '/app/design-editor'
     | '/app/discovery'
@@ -1095,6 +1105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCalendarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/chat': {
+      id: '/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/decisions': {
       id: '/app/decisions'
       path: '/decisions'
@@ -1321,17 +1338,17 @@ declare module '@tanstack/react-router' {
     }
     '/app/chat/': {
       id: '/app/chat/'
-      path: '/chat'
+      path: '/'
       fullPath: '/app/chat/'
       preLoaderRoute: typeof AppChatIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppChatRoute
     }
     '/app/chat/$id': {
       id: '/app/chat/$id'
-      path: '/chat/$id'
+      path: '/$id'
       fullPath: '/app/chat/$id'
       preLoaderRoute: typeof AppChatIdRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppChatRoute
     }
     '/api/public/meta/callback': {
       id: '/api/public/meta/callback'
@@ -1357,6 +1374,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppChatRouteChildren {
+  AppChatIdRoute: typeof AppChatIdRoute
+  AppChatIndexRoute: typeof AppChatIndexRoute
+}
+
+const AppChatRouteChildren: AppChatRouteChildren = {
+  AppChatIdRoute: AppChatIdRoute,
+  AppChatIndexRoute: AppChatIndexRoute,
+}
+
+const AppChatRouteWithChildren =
+  AppChatRoute._addFileChildren(AppChatRouteChildren)
+
 interface AppRouteChildren {
   AppApprovalsRoute: typeof AppApprovalsRoute
   AppAutomationsRoute: typeof AppAutomationsRoute
@@ -1364,6 +1394,7 @@ interface AppRouteChildren {
   AppBrainRoute: typeof AppBrainRoute
   AppBrowserRoute: typeof AppBrowserRoute
   AppCalendarRoute: typeof AppCalendarRoute
+  AppChatRoute: typeof AppChatRouteWithChildren
   AppDecisionsRoute: typeof AppDecisionsRoute
   AppDesignEditorRoute: typeof AppDesignEditorRoute
   AppDiscoveryRoute: typeof AppDiscoveryRoute
@@ -1378,8 +1409,6 @@ interface AppRouteChildren {
   AppTeamTasksRoute: typeof AppTeamTasksRoute
   AppTrustRoute: typeof AppTrustRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppChatIdRoute: typeof AppChatIdRoute
-  AppChatIndexRoute: typeof AppChatIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1389,6 +1418,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBrainRoute: AppBrainRoute,
   AppBrowserRoute: AppBrowserRoute,
   AppCalendarRoute: AppCalendarRoute,
+  AppChatRoute: AppChatRouteWithChildren,
   AppDecisionsRoute: AppDecisionsRoute,
   AppDesignEditorRoute: AppDesignEditorRoute,
   AppDiscoveryRoute: AppDiscoveryRoute,
@@ -1403,8 +1433,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppTeamTasksRoute: AppTeamTasksRoute,
   AppTrustRoute: AppTrustRoute,
   AppIndexRoute: AppIndexRoute,
-  AppChatIdRoute: AppChatIdRoute,
-  AppChatIndexRoute: AppChatIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

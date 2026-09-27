@@ -41,7 +41,7 @@ import {
   MailWarning,
 } from "lucide-react";
 
-import { AppShell } from "@/components/app/AppShell";
+import { ChatShellActions, ChatShellMeta } from "@/components/app/ChatShellHost";
 import { AppIcon, appLabel } from "@/components/site/AppIcon";
 import { ConnectNow } from "@/components/app/ConnectNow";
 import { InlineApproval } from "@/components/app/InlineApproval";
@@ -277,7 +277,8 @@ export const Route = createFileRoute("/app/chat/$id")({
 
 function ChatMissing() {
   return (
-    <AppShell title="الموظف غير موجود">
+    <>
+      <ChatShellMeta title="الموظف غير موجود" padded />
       <div className="rounded-3xl border border-border bg-card p-10 text-center">
         <p className="text-ink-soft">لم نعثر على هذا الموظف ضمن فريقك.</p>
         <Link
@@ -287,7 +288,7 @@ function ChatMissing() {
           العودة للمحادثات
         </Link>
       </div>
-    </AppShell>
+    </>
   );
 }
 
@@ -1093,12 +1094,9 @@ function ChatView({
   };
 
   return (
-    <AppShell
-      title={member.name}
-      lead={member.role}
-      padded={false}
-      compactTitle
-      actions={
+    <>
+      <ChatShellMeta title={member.name} lead={member.role} padded={false} compactTitle />
+      <ChatShellActions>
         <div className="chat-topbar-actions no-scrollbar flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto sm:gap-1.5">
           <span
             className="chat-presence"
@@ -1198,8 +1196,7 @@ function ChatView({
             <Plus className="size-4" />
           </button>
         </div>
-      }
-    >
+      </ChatShellActions>
       <div className="chat-command-layout">
         <div
           className={cn(
@@ -2017,6 +2014,6 @@ function ChatView({
           </>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }
