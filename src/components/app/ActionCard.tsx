@@ -38,6 +38,11 @@ export function ActionCard({
     missed?: string[];
     submitted?: boolean;
     screenshotUrl?: string | null;
+    kind?: string;
+    status?: string;
+    answer?: string;
+    liveViewUrl?: string | null;
+    steps?: { n: number; note: string; url: string; screenshotUrl: string | null }[];
   } | null>(null);
   const [preview, setPreview] = useState<{ title: string | null; screenshotUrl: string | null } | null>(null);
 
@@ -75,6 +80,50 @@ export function ActionCard({
   const missing = action.inputs
     .filter((i) => i.required && !(values[i.name] ?? "").trim())
     .map((i) => i.label);
+
+  if (done && outcome?.kind === "browser-task") {
+    const last = [...(outcome.steps ?? [])].reverse().find((st) => st.screenshotUrl);
+    const lastUrl = [...(outcome.steps ?? [])].reverse().find((st) => st.url)?.url;
+    const stopped = outcome.status === "needs_approval" || outcome.status === "handoff";
+    return (
+      <div className="mt-3 space-y-2 rounded-2xl border border-mint/30 bg-mint/10 px-4 py-3 text-sm animate-pop-in">
+        <p className="font-semibold">
+          {stopped
+            ? "وصلت للخطوة الحساسة وتوقفت لتأكيدك قبل أي دفع أو إرسال."
+            : `أنهيت رحلة التصفح في ${outcome.steps?.length ?? 0} خطوة.`}
+        </p>
+        {outcome.answer ? (
+          <p className="whitespace-pre-line text-foreground" dir="auto">
+            {outcome.answer}
+          </p>
+        ) : null}
+        {last?.screenshotUrl ? (
+          <img
+            src={last.screenshotUrl}
+            alt="آخر صفحة وصل إليها المتصفح"
+            className="max-h-64 w-full rounded-xl border border-border object-cover object-top"
+            loading="lazy"
+          />
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {outcome.liveViewUrl ? (
+            <Button asChild className="min-h-10 rounded-xl text-xs font-bold">
+              <a href={outcome.liveViewUrl} target="_blank" rel="noreferrer">
+                أكّد الخطوة الأخيرة في الجلسة الحية
+              </a>
+            </Button>
+          ) : null}
+          {lastUrl ? (
+            <Button asChild variant="outline" className="min-h-10 rounded-xl text-xs font-bold">
+              <a href={lastUrl} target="_blank" rel="noreferrer">
+                افتح العرض الأصلي
+              </a>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   if (done) {
     return (
