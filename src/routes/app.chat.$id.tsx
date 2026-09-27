@@ -156,7 +156,9 @@ function MessageActions({
   onEdit,
   onRegenerate,
   disabled,
+  listen,
 }: {
+  listen?: React.ReactNode;
   text: string;
   onEdit: () => void;
   onRegenerate: (() => void) | null;
@@ -198,6 +200,7 @@ function MessageActions({
   };
   return (
     <span className="flex flex-wrap items-center gap-1.5">
+      {listen}
       <CopyButton text={text} />
       <button type="button" onClick={() => void share()} className={btn} aria-label="مشاركة">
         <Share2 className="size-3" /> {shared ? "نُسخ للمشاركة" : "مشاركة"}
@@ -1312,9 +1315,6 @@ function ChatView({
                         ) : (
                           <>
                             <Markdown body={body} onOpenApp={openAppInChat} />
-                            {workspace && body.trim().length > 2 ? (
-                              <ListenButton workspaceId={workspace.id} text={body} />
-                            ) : null}
                           </>
                         )}
                         {!isUser &&
@@ -1383,6 +1383,11 @@ function ChatView({
                           {!isUser ? (
                             <span className="ms-auto min-w-0 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 [&_button]:min-h-9">
                               <MessageActions
+                                listen={
+                                  workspace && body.trim().length > 2 ? (
+                                    <ListenButton workspaceId={workspace.id} text={body} />
+                                  ) : null
+                                }
                                 text={body}
                                 disabled={busy}
                                 onEdit={() => {
