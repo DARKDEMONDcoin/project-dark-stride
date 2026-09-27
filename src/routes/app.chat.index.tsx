@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-import { AppShell } from "@/components/app/AppShell";
+import { ChatShellMeta } from "@/components/app/ChatShellHost";
 import { Portrait } from "@/components/site/Portrait";
 import { team } from "@/data/team";
 import { useLastMessages, useWorkspace } from "@/lib/data";
@@ -22,7 +22,12 @@ function ChatIndex() {
   const { data: messages } = useLastMessages(workspace?.id);
 
   return (
-    <AppShell title="المحادثات" lead="اطلب من أي موظف ما تحتاجه — بالعربية وبلهجتك.">
+    <>
+      <ChatShellMeta
+        title="المحادثات"
+        lead="اطلب من أي موظف ما تحتاجه — بالعربية وبلهجتك."
+        padded
+      />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {team.map((m) => {
           const last = (messages ?? []).find((x) => x.employee_id === m.id);
