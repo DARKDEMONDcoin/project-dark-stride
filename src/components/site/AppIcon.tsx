@@ -22,6 +22,7 @@ const siCanva: Icon = {
 };
 
 const map: Record<string, { icon?: Icon; label: string }> = {
+  browser: { icon: si.siGooglechrome, label: "المتصفح السحابي" },
   instagram: { icon: si.siInstagram, label: "إنستجرام" },
   x: { icon: si.siX, label: "إكس" },
   linkedin: { icon: siLinkedin, label: "لينكدإن" },

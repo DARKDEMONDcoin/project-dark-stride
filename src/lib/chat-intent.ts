@@ -72,6 +72,8 @@ const ADVISORY =
 export function chatIntent(message: string): ChatIntent {
   const text = message.trim();
   if (!text) return "smalltalk";
+  // أوامر حجز/شراء/نشر صريحة = طلب تنفيذ دائماً.
+  if (/^(?:\S+\s+){0,3}?(احجزلي|احجز|اشتريلي|اشتري|اطلبلي|انشرلي|انشر)(?![\p{L}])/u.test(text)) return "work";
   // سؤال استشاري («ايه أحسن وقت للنشر؟») ليس طلب مخرج حتى لو ذكر كلمة من مجال العمل.
   const looksLikeQuestion = /[؟?]\s*$/.test(text) || ASK_START.test(text);
   // داخل صيغة سؤال، فعل الإنتاج يُحتسب إن كان في أول الرسالة، أو متبوعاً بـ«لي/لنا»،
