@@ -39,11 +39,11 @@ export function ListenButton({ workspaceId, text }: { workspaceId: string; text:
       type="button"
       onClick={() => void play()}
       disabled={state === "busy"}
-      className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-60"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[0.7rem] font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
       aria-label="استمع للرد"
     >
-      {state === "busy" ? <Loader2 className="size-3.5 animate-spin" /> : state === "playing" ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
-      {state === "playing" ? "إيقاف" : state === "error" ? "تعذّر التشغيل — أعد المحاولة" : "استمع"}
+      {state === "busy" ? <Loader2 className="size-3 animate-spin" /> : state === "playing" ? <Square className="size-3" /> : <Volume2 className="size-3" />}
+      {state === "playing" ? "إيقاف" : state === "error" ? "أعد المحاولة" : "استمع"}
     </button>
   );
 }
