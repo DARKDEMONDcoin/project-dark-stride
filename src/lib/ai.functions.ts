@@ -481,7 +481,7 @@ export async function runEmployeeTurn(
     // توجيه ذكي تلقائي: طلب عمل خارج اختصاص موظف المحادثة يتولاه الزميل المختص
     // خلف الكواليس (تعليماته وأدواته وإجراءاته)، وتعود النتيجة في نفس المحادثة.
     const routed =
-      intent === "work"
+      intent !== "smalltalk"
         ? await (await import("./smart-route.server")).smartHandoff(data.message, data.employeeId)
         : null;
     const agentId: string = routed?.id ?? data.employeeId;
@@ -819,7 +819,7 @@ export async function runEmployeeTurn(
         data.message,
         intent === "smalltalk"
           ? undefined
-          : intent === "work"
+          : routed || intent === "work"
             ? null
             : await (await import("./smart-route.server")).smartHandoff(data.message, agentId),
       ),
@@ -1185,7 +1185,7 @@ export async function runEmployeeTurn(
 
     // ضمان حتمي لطلبات الحجز/الشراء/مقارنة العروض: بطاقة رحلة تصفح متعددة الخطوات
     // داخل الشات، تنطلق فور «اعتمد ونفّذ» وتتوقف قبل الدفع لتأكيد المالك.
-    if (!pendingAction && intent === "work" && BROWSE_TASK_RE.test(data.message)) {
+    if (!pendingAction && intent !== "smalltalk" && BROWSE_TASK_RE.test(data.message)) {
       const def = allowedActions.find((a) => a.id === "team-browser-task");
       if (def) {
         pendingAction = {
@@ -1250,7 +1250,7 @@ export async function runEmployeeTurn(
     if (intent !== "work") {
       deliverables = [];
       needsConnection = null;
-      pendingAction = null;
+      if (pendingAction?.id !== "team-browser-task") pendingAction = null;
     }
 
     // فحص جودة حتمي لكل منشور من أي موظف (هوك، طول المنصة، دعوة، هاشتاقات، حشو، بقايا تنسيق)
