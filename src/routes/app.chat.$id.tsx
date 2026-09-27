@@ -1196,8 +1196,7 @@ function ChatView({
             <Plus className="size-4" />
           </button>
         </div>
-      }
-    >
+      </ChatShellActions>
       <div className="chat-command-layout">
         <div
           className={cn(
