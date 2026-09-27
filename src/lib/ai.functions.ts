@@ -1580,6 +1580,10 @@ export async function runEmployeeTurn(
             })
         : Promise.resolve(0);
 
+    if (routed) {
+      reply = `> **${routed.name}** تولّى طلبك تلقائياً من داخل هذه المحادثة — ${routed.topic}.\n\n${reply}`;
+    }
+
     // صورة المخرج: المولّدة، وإلا صورة أرفقها المستخدم فقط — لا نُلصق صور الموقع تلقائياً.
     const mediaUrl =
       imageUrl ??
